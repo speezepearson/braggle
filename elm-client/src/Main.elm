@@ -8,19 +8,27 @@ import Json.Decode as D
 import Json.Encode as E
 
 type alias Id = String
-type Element = Ref Id | Text String | Node (Maybe Id) String (List (Attribute Msg)) (List Element)
+type Subtree = Ref Id | Text String | Node String (List (Attribute Msg)) (List Subtree)
+type alias Element =
+    { id : Id
+    , subtree : Subtree
+    }
 
-elementDecoder : D.Decoder Element
-elementDecoder =
+subtreeDecoder : D.Decoder Subtree
+subtreeDecoder =
     D.oneOf
         [ D.map Ref (D.field "ref" D.string)
         , D.map Text (D.field "text" D.string)
-        , D.map4 Node
-            (D.field "id" (D.maybe D.string))
+        , D.map3 Node
             (D.field "name" D.string)
             (D.field "attributes" (D.list (D.map2 attribute (D.index 0 D.string) (D.index 1 D.string))))
-            (D.field "children" (D.list (D.lazy (\_ -> elementDecoder))))
+            (D.field "children" (D.list (D.lazy (\_ -> subtreeDecoder))))
         ]
+elementDecoder : D.Decoder Element
+elementDecoder =
+    D.map2 Element
+        (D.field "id" D.string)
+        (D.field "subtree" subtreeDecoder)
 pollDecoder: D.Decoder Msg
 pollDecoder =
     D.map3 PollCompleted
@@ -72,7 +80,7 @@ notify interaction =
 
 init : () -> (Model,  Cmd Msg)
 init _ =
-    ( { elements = Dict.singleton "root" (Text "Loading...")
+    ( { elements = Dict.singleton "root" {id="root", subtree=(Text "Loading...")}
       , timeStep = -1
       , root = "root"
       }
@@ -98,26 +106,22 @@ view : Model -> Html Msg
 view model =
     case Dict.get model.root model.elements of
         Nothing -> text "<NO ROOT?>"
-        Just e -> viewElement model.elements e
+        Just {id, subtree} -> viewSubtree model.elements id subtree
 
-must : Maybe a -> a
-must x = case x of
-    Nothing -> Debug.todo "must-assertion failed"
-    Just y -> y
-viewElement : Dict.Dict Id Element -> Element -> Html Msg
-viewElement elements element =
-    case element of
+viewSubtree : Dict.Dict Id Element -> Id -> Subtree -> Html Msg
+viewSubtree elements id subtree =
+    case subtree of
         Text s -> Html.text s
-        Node id name attrs children ->
+        Node name attrs children ->
             let
-                allAttrs = Debug.log "attrs" <| case Debug.log "name,id" (name, id) of
-                    ("button", Just id_) -> onClick (Interacted (Clicked id_)) :: attrs
-                    ("input", Just id_) -> onInput (\val -> Interacted (Inputted id_ val)) :: attrs
+                allAttrs = case name of
+                    "button" -> onClick (Interacted (Clicked id)) :: attrs
+                    "input" -> onInput (\val -> Interacted (Inputted id val)) :: attrs
                     _ -> attrs
             in
-                Html.node name allAttrs (List.map (viewElement elements) children)
-        Ref id -> case Dict.get id elements of
+                Html.node name allAttrs (List.map (viewSubtree elements id) children)
+        Ref refId -> case Dict.get refId elements of
             Nothing -> text "<NO ELEMENT?>"
-            Just e -> viewElement elements e
+            Just referent -> viewSubtree elements refId referent.subtree
 
 main = Browser.element {init=init, update=update, view=view, subscriptions=(always Sub.none)}

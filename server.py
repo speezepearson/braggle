@@ -13,16 +13,22 @@ class Interaction:
     type: str
     value: Optional[str] = None
 
-def bridge_ref_json(id: str):
-    return {'ref': id}
 def bridge_text_json(s: str):
     return {'text': s}
 def bridge_node_json(node_name, attributes, children, id=None):
     return {'name': node_name, 'attributes': attributes, 'children': children, 'id': id}
 
+def _count():
+    i = 0
+    while True:
+        yield i
+        i += 1
+
 class Element(ABC):
+    _nonces = _count()
     def __init__(self, parent: Optional[Element] = None) -> None:
         super().__init__()
+        self.id = str("_element_" + str(next(self._nonces)))
         self._parent = parent
         self._gui: Optional[GUI] = None
     @property
@@ -43,13 +49,14 @@ class Element(ABC):
         self._gui = gui
     def mark_dirty(self) -> None:
         gui = self.gui
-        print('marking', self, 'dirty in', gui)
         if gui is not None:
             gui.mark_dirty(self)
 
     @abstractmethod
-    def to_bridge_json(self):
+    def subtree_json(self):
         pass
+    def ref_json(self) -> str:
+        return {"ref": self.id}
 
     def handle_interaction(self) -> None:
         pass
@@ -63,25 +70,7 @@ class Element(ABC):
         for child in self.children:
             yield from child.walk()
 
-def _count():
-    i = 0
-    while True:
-        yield i
-        i += 1
-class ReferableElement(Element, ABC):
-    _nonces = _count()
-
-    def __init__(self):
-        self.id = str("_element_" + str(next(self._nonces)))
-
-    def to_bridge_json(self):
-        return bridge_ref_json(self.id)
-
-    @abstractmethod
-    def to_full_bridge_json(self):
-        pass
-
-class List(ReferableElement):
+class List(Element):
     def __init__(self, children: Sequence[Element], **kwargs) -> None:
         super().__init__(**kwargs)
         self._children = children
@@ -91,11 +80,11 @@ class List(ReferableElement):
     @property
     def children(self) -> Sequence[Element]:
         return self._children
-    def to_full_bridge_json(self):
+    def subtree_json(self):
         return bridge_node_json(
             'ul',
             [],
-            [bridge_node_json('li', [], [child.to_bridge_json()])
+            [bridge_node_json('li', [], [child.ref_json()])
              for child in self._children],
             id=self.id,
         )
@@ -109,10 +98,9 @@ class Text(Element):
         return self._text
     @text.setter
     def text(self, text: str) -> None:
-        print('setting', self, 'to', text)
         self._text = text
         self.mark_dirty()
-    def to_bridge_json(self):
+    def subtree_json(self):
         return bridge_text_json(self.text)
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
@@ -126,23 +114,23 @@ class Text(Element):
         self._value = value
         self.mark_dirty()
 
-class Button(ReferableElement):
+class Button(Element):
     def __init__(self, text: str, callback: Callable[[], None], **kwargs) -> None:
         super().__init__(**kwargs)
         self._text = text
         self._callback = callback
-    def to_full_bridge_json(self):
+    def subtree_json(self):
         return bridge_node_json('button', [], [bridge_text_json(self._text)], id=self.id)
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
             self._callback()
 
-class TextField(ReferableElement):
+class TextField(Element):
     def __init__(self, callback: Callable[[str], None], **kwargs) -> None:
         super().__init__(**kwargs)
         self._value = ''
         self._callback = callback
-    def to_full_bridge_json(self):
+    def subtree_json(self):
         return bridge_node_json('input', [('value', self._value)], [], id=self.id)
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
@@ -157,10 +145,10 @@ class TextField(ReferableElement):
         self.mark_dirty()
 
 class GUI:
-    def __init__(self, loop: asyncio.BaseEventLoop, root: ReferableElement) -> None:
+    def __init__(self, loop: asyncio.BaseEventLoop, root: Element) -> None:
         self._loop = loop
         self._root = root
-        self._dirty_elements: Sequence[ReferableElement] = []
+        self._dirty_elements: Sequence[Element] = []
         self._dirtied = asyncio.Condition()
         self._root.gui = self
 
@@ -172,11 +160,11 @@ class GUI:
         async with self._dirtied:
             await self._dirtied.wait_for(lambda: self.time_step > since)
 
-    async def _mark_dirty_async(self, element: ReferableElement) -> None:
+    async def _mark_dirty_async(self, element: Element) -> None:
         async with self._dirtied:
             self._dirty_elements.append(element)
             self._dirtied.notify_all()
-    def mark_dirty(self, element: ReferableElement) -> None:
+    def mark_dirty(self, element: Element) -> None:
         asyncio.run_coroutine_threadsafe(self._mark_dirty_async(element), self._loop)
 
     def run(self):
@@ -196,9 +184,8 @@ class GUI:
                     'root': self._root.id,
                     'timeStep': self.time_step,
                     'elements': {
-                        e.id: e.to_full_bridge_json()
+                        e.id: {"id": e.id, "subtree": e.subtree_json()}
                         for e in self._root.walk()
-                        if isinstance(e, ReferableElement)
                     },
                 })
         @routes.post('/interaction')
@@ -207,7 +194,7 @@ class GUI:
             j = await request.json()
             async with self._dirtied:
                 for element in self._root.walk():
-                    if isinstance(element, ReferableElement) and element.id == j['target']:
+                    if isinstance(element, Element) and element.id == j['target']:
                         element.handle_interaction(Interaction(**j))
                         return web.Response(text='ok')
                 return web.Response(status=404)
