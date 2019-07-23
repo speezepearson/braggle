@@ -202,7 +202,11 @@ t = Text('foo')
 def callback():
     t.text = t.text + '!'
 b = Button(text='click', callback=callback)
+
+def callback2(s): t2.text = s
+t2 = Text('')
+tf = TextField(callback=callback2)
 GUI(
     loop=asyncio.get_event_loop(),
-    root=List([t, b]),
+    root=List([t, b, t2, tf]),
 ).run()
