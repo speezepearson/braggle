@@ -1,5 +1,8 @@
+import dataclasses
 import os
 import re
+from typing import Optional
+
 from bridge import *
 
 def n_leading_spaces(s):
@@ -25,14 +28,14 @@ def exec_then_eval(to_exec, to_eval):
     # print(to_eval)
     return eval(to_eval, scope, scope)
 
-class Example(object):
-    def __init__(self, show_code, prep_code=None):
-        self.show_code = show_code
-        self.prep_code = prep_code
+@dataclasses.dataclass
+class Example:
+    show_code: str
+    prep_code: Optional[str] = None
 
     def to_grid_row(self):
         element = exec_then_eval(to_exec=self.prep_code, to_eval=self.show_code)
-        code = self.show_code if self.prep_code is None else (self.prep_code + '\n\n' + self.show_code)
+        code = self.show_code if self.prep_code is None else f'{self.prep_code}\n\nserve(GUI({self.show_code}))'
         return [CodeBlock(code), element]
 
 def main():
@@ -71,6 +74,7 @@ def main():
             def button_clicked():
                 n = int(click_count.text)
                 click_count.text = str(n+1)
+
             button = Button('Click me!', callback=button_clicked)'''))
 
     examples[TextField] = Example(
@@ -80,6 +84,7 @@ def main():
             def text_field_changed(value):
                 reversed_contents = ''.join(reversed(value))
                 reversed_text_field_contents.text = reversed_contents
+
             text_field = TextField(callback=text_field_changed)
             text_field.value = "Reversed"'''))
 
