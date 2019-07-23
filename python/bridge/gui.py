@@ -35,6 +35,7 @@ class AbstractGUI(ABC):
         '''TODO: this is awkward and weird.'''
 
 class GUI(AbstractGUI):
+    '''Not thread-safe.'''
     def __init__(self, root: Element) -> None:
         self._root = root
         self._root.gui = self
