@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
-from typing import Callable, Iterator, Optional, Sequence, Tuple
+from typing import Callable, Iterator, MutableSequence, Optional, Sequence, Tuple
 
 from aiohttp import web
 
@@ -31,35 +31,15 @@ class Element(ABC):
         self.id = str("_element_" + str(next(self._nonces)))
         self._parent = parent
         self._gui: Optional[GUI] = None
+
     @property
     def parent(self) -> Optional[Element]:
         return self._parent
     @parent.setter
     def parent(self, parent: Element) -> None:
+        if (self._parent is not None) and (parent is not None):
+            raise RuntimeError('cannot set parent of Element that already has a parent')
         self._parent = parent
-    @property
-    def gui(self) -> Optional[GUI]:
-        if self._gui is not None:
-            return self._gui
-        if self.parent is not None:
-            return self.parent.gui
-        return None
-    @gui.setter
-    def gui(self, gui: GUI) -> None:
-        self._gui = gui
-    def mark_dirty(self) -> None:
-        gui = self.gui
-        if gui is not None:
-            gui.mark_dirty(self)
-
-    @abstractmethod
-    def subtree_json(self):
-        pass
-    def ref_json(self) -> str:
-        return {"ref": self.id}
-
-    def handle_interaction(self) -> None:
-        pass
 
     @property
     def children(self) -> Sequence[Element]:
@@ -69,6 +49,34 @@ class Element(ABC):
         yield self
         for child in self.children:
             yield from child.walk()
+
+    @property
+    def gui(self) -> Optional[GUI]:
+        if self._gui is not None:
+            return self._gui
+        if self.parent is not None:
+            return self.parent.gui
+        return None
+    @gui.setter
+    def gui(self, gui: GUI) -> None:
+        if self.parent is not None:
+            raise RuntimeError('cannot set GUI of an Element that has a parent')
+        self._gui = gui
+
+    def mark_dirty(self) -> None:
+        if self.gui is not None:
+            self.gui.mark_dirty(self)
+
+    def ref_json(self):
+        return {"ref": self.id}
+
+    def handle_interaction(self, Interaction) -> None:
+        pass
+
+    @abstractmethod
+    def subtree_json(self):
+        pass
+
 
 class List(Element):
     def __init__(self, children: Sequence[Element], **kwargs) -> None:
@@ -80,6 +88,7 @@ class List(Element):
     @property
     def children(self) -> Sequence[Element]:
         return self._children
+
     def subtree_json(self):
         return bridge_node_json(
             'ul',
@@ -105,14 +114,6 @@ class Text(Element):
         if interaction.type == 'click':
             self._callback()
 
-    @property
-    def value(self) -> str:
-        return self._value
-    @value.setter
-    def value(self, value: str) -> None:
-        self._value = value
-        self.mark_dirty()
-
 class Button(Element):
     def __init__(self, text: str, callback: Callable[[], None], **kwargs) -> None:
         super().__init__(**kwargs)
@@ -132,8 +133,8 @@ class TextField(Element):
     def subtree_json(self):
         return bridge_node_json('input', [('value', self._value)], [])
     def handle_interaction(self, interaction):
-        if interaction.type == 'click':
-            self._callback()
+        if interaction.type == 'input':
+            self._callback(interaction.value)
 
     @property
     def value(self) -> str:
@@ -144,20 +145,16 @@ class TextField(Element):
         self.mark_dirty()
 
 class GUI:
-    def __init__(self, loop: asyncio.BaseEventLoop, root: Element) -> None:
+    def __init__(self, loop: asyncio.AbstractEventLoop, root: Element) -> None:
         self._loop = loop
         self._root = root
-        self._dirty_elements: Sequence[Element] = []
+        self._dirty_elements: MutableSequence[Element] = []
         self._dirtied = asyncio.Condition()
         self._root.gui = self
 
     @property
     def time_step(self) -> int:
         return len(self._dirty_elements)
-
-    async def poll(self, since:int) -> web.Response:
-        async with self._dirtied:
-            await self._dirtied.wait_for(lambda: self.time_step > since)
 
     async def _mark_dirty_async(self, element: Element) -> None:
         async with self._dirtied:
@@ -169,7 +166,7 @@ class GUI:
     def run(self):
         routes = web.RouteTableDef()
         @routes.get('/')
-        async def index(request: web.Request) -> web.Response:
+        async def index(request: web.Request) -> web.FileResponse:
             #import time; time.sleep(1)
             return web.FileResponse('elm-client/index.html')
         @routes.post('/poll')
