@@ -56,6 +56,7 @@ class GUI(AbstractGUI):
         return len(self._dirty_elements)
 
     def render_poll_response(self, since: int = 0) -> PollResponse:
+        since = max(since, 0)
         recently_dirtied = set(self._dirty_elements[since:])
         return poll_response(
             root=self.root,

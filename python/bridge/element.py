@@ -128,6 +128,7 @@ class TextField(Element):
         return interchange.node_json('input', {'value': self._value}, [])
     def handle_interaction(self, interaction):
         if interaction.type == 'input':
+            self._value = interaction.value
             self._callback(interaction.value)
 
     @property
