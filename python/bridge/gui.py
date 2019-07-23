@@ -2,66 +2,60 @@ from __future__ import annotations
 
 import asyncio
 
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import MutableSequence, TYPE_CHECKING
-
-from aiohttp import web
-
-from .interchange import Interaction
+from typing import Iterable, MutableSequence, Optional, Sequence, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .element import Element
+    from .interchange import BridgeJson, PollResponse
 
-class GUI:
-    def __init__(self, loop: asyncio.AbstractEventLoop, root: Element) -> None:
-        self._loop = loop
+class GUI(ABC):
+    @property
+    @abstractmethod
+    def root(self) -> Element:
+        '''...'''
+
+    @abstractmethod
+    def mark_dirty(self, element: Element) -> None:
+        '''...'''
+
+    @property
+    @abstractmethod
+    def time_step(self) -> int:
+        '''...'''
+
+    @abstractmethod
+    def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
+        '''...'''
+
+class AsyncGUI(GUI):
+    def __init__(self, root: Element, *, loop: asyncio.AbstractEventLoop = None) -> None:
+        self._loop = loop if (loop is not None) else asyncio.get_event_loop()
         self._root = root
-        self._dirty_elements: MutableSequence[Element] = []
-        self._dirtied = asyncio.Condition()
+        self._dirty_elements: MutableSequence[Element] = [root]
+        self._dirtied = asyncio.Condition(loop=loop)
         self._root.gui = self
+
+    @property
+    def root(self) -> Element:
+        return self._root
 
     @property
     def time_step(self) -> int:
         return len(self._dirty_elements)
 
+    @property
+    def dirtied(self) -> asyncio.Condition:
+        return self._dirtied
+
+    def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
+        return self._dirty_elements[start:end]
+
     async def _mark_dirty_async(self, element: Element) -> None:
         async with self._dirtied:
             self._dirty_elements.append(element)
             self._dirtied.notify_all()
-    def mark_dirty(self, element: Element) -> None:
-        asyncio.run_coroutine_threadsafe(self._mark_dirty_async(element), self._loop)
 
-    def run(self, client_html: Path) -> None:
-        routes = web.RouteTableDef()
-        @routes.get('/')
-        async def index(request: web.Request) -> web.FileResponse:
-            #import time; time.sleep(1)
-            return web.FileResponse(client_html)
-        @routes.post('/poll')
-        async def poll(request: web.Request) -> web.Response:
-            #import time; time.sleep(1)
-            since = await request.json()
-            async with self._dirtied:
-                await self._dirtied.wait_for(lambda: self.time_step > since)
-                recently_dirtied = set(self._dirty_elements[since:])
-                return web.json_response({
-                    'root': self._root.id,
-                    'timeStep': self.time_step,
-                    'elements': {
-                        e.id: {"id": e.id, "subtree": e.subtree_json()}
-                        for e in self._root.walk()
-                    },
-                })
-        @routes.post('/interaction')
-        async def interaction(request: web.Request) -> web.Response:
-            #import time; time.sleep(1)
-            j = await request.json()
-            async with self._dirtied:
-                for element in self._root.walk():
-                    if element.id == j['target']:
-                        element.handle_interaction(Interaction(**j))
-                        return web.Response(text='ok')
-                return web.Response(status=404)
-        app = web.Application(loop=self._loop)
-        app.add_routes(routes)
-        web.run_app(app, port=4392)
+    def mark_dirty(self, element: Element) -> None:
+        self._loop.create_task(self._mark_dirty_async(element))

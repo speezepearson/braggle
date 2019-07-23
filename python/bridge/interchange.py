@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Mapping, NewType, Optional, Sequence, TYPE_CHECKING, Union
+from typing import Any, Iterable, Mapping, NewType, Optional, Sequence, TYPE_CHECKING, Union
 
 from . import element
 
@@ -10,6 +12,7 @@ class Interaction:
     value: Optional[str] = None
 
 BridgeJson = NewType('BridgeJson', Mapping[str, Any])
+PollResponse = NewType('PollResponse', Mapping[str, Any])
 
 def text_json(s: str) -> BridgeJson:
     return BridgeJson({'text': s})
@@ -23,4 +26,14 @@ def node_json(
         'name': node_name,
         'attributes': attributes,
         'children': [{'ref': c.id} if isinstance(c, element.Element) else c for c in children],
+    })
+
+def poll_response(root: element.Element, time_step: int, elements: Iterable[element.Element]) -> PollResponse:
+    return PollResponse({
+        'root': root.id,
+        'timeStep': time_step,
+        'elements': {
+            e.id: {"id": e.id, "subtree": e.subtree_json()}
+            for e in elements
+        }
     })
