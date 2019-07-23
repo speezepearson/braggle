@@ -14,6 +14,9 @@ type alias Element =
     , subtree : Subtree
     }
 
+attributesDecoder : D.Decoder (List (Attribute Msg))
+attributesDecoder = D.dict D.string |> D.map (Dict.toList >> List.map (\(k, v) -> attribute k v))
+
 subtreeDecoder : D.Decoder Subtree
 subtreeDecoder =
     D.oneOf
@@ -21,7 +24,7 @@ subtreeDecoder =
         , D.map Text (D.field "text" D.string)
         , D.map3 Node
             (D.field "name" D.string)
-            (D.field "attributes" (D.list (D.map2 attribute (D.index 0 D.string) (D.index 1 D.string))))
+            (D.field "attributes" attributesDecoder)
             (D.field "children" (D.list (D.lazy (\_ -> subtreeDecoder))))
         ]
 elementDecoder : D.Decoder Element

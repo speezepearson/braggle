@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
-from typing import Callable, Iterator, MutableSequence, Optional, Sequence, Tuple
+from typing import Any, Callable, Iterator, Mapping, MutableSequence, NewType, Optional, Sequence, Tuple, Union
 
 from aiohttp import web
 
@@ -13,14 +13,20 @@ class Interaction:
     type: str
     value: Optional[str] = None
 
-def bridge_text_json(s: str):
-    return {'text': s}
-def bridge_node_json(node_name, attributes, children):
-    return {
+BridgeJson = NewType('BridgeJson', Mapping[str, Any])
+
+def bridge_text_json(s: str) -> BridgeJson:
+    return BridgeJson({'text': s})
+def bridge_node_json(
+    node_name: str,
+    attributes: Mapping[str, str],
+    children: Sequence[Union[BridgeJson, Element]]
+) -> BridgeJson:
+    return BridgeJson({
         'name': node_name,
         'attributes': attributes,
         'children': [{'ref': c.id} if isinstance(c, Element) else c for c in children],
-    }
+    })
 
 def _count():
     i = 0
@@ -93,8 +99,8 @@ class List(Element):
     def subtree_json(self):
         return bridge_node_json(
             'ul',
-            [],
-            [bridge_node_json('li', [], [child])
+            {},
+            [bridge_node_json('li', {}, [child])
              for child in self._children],
         )
 
@@ -121,7 +127,7 @@ class Button(Element):
         self._text = text
         self._callback = callback
     def subtree_json(self):
-        return bridge_node_json('button', [], [bridge_text_json(self._text)])
+        return bridge_node_json('button', {}, [bridge_text_json(self._text)])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
             self._callback()
@@ -132,7 +138,7 @@ class TextField(Element):
         self._value = ''
         self._callback = callback
     def subtree_json(self):
-        return bridge_node_json('input', [('value', self._value)], [])
+        return bridge_node_json('input', {'value': self._value}, [])
     def handle_interaction(self, interaction):
         if interaction.type == 'input':
             self._callback(interaction.value)
