@@ -128,6 +128,13 @@ class Text(Element):
     def subtree_json(self):
         return interchange.text_json(self.text)
 
+class Bold(Text):
+    def subtree_json(self):
+        return interchange.node_json(
+            'b',
+            {},
+            [interchange.text_json(self.text)],
+        )
 class CodeSnippet(Text):
     def subtree_json(self):
         return interchange.node_json(
@@ -189,8 +196,12 @@ class Button(Element):
         self.callback = f
         return f
 
+class LineBreak(Element):
+    def subtree_json(self):
+        return interchange.node_json('br', {}, [])
+
 class TextField(Element):
-    def __init__(self, callback: Callable[[str], None], **kwargs) -> None:
+    def __init__(self, callback: Optional[Callable[[str], None]] = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self._value = ''
         self._callback = callback
@@ -198,8 +209,7 @@ class TextField(Element):
         return interchange.node_json('input', {'value': self._value}, [])
     def handle_interaction(self, interaction):
         if interaction.type == 'input':
-            self._value = interaction.value
-            self._callback(interaction.value)
+            self.value = interaction.value
 
     @property
     def value(self) -> str:
@@ -207,4 +217,6 @@ class TextField(Element):
     @value.setter
     def value(self, value: str) -> None:
         self._value = value
+        if self._callback is not None:
+            self._callback(value)
         self.mark_dirty()

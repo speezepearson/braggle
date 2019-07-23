@@ -8,8 +8,7 @@ from typing import Any, Callable, Iterable, MutableSequence, MutableSet, Optiona
 
 from .interchange import BridgeJson, PollResponse, poll_response
 
-if TYPE_CHECKING:
-    from .element import Element
+from .element import Element, Container
 
 class AbstractGUI(ABC):
     @property
@@ -36,10 +35,10 @@ class AbstractGUI(ABC):
 
 class GUI(AbstractGUI):
     '''Not thread-safe.'''
-    def __init__(self, root: Element) -> None:
-        self._root = root
+    def __init__(self, *children: Element) -> None:
+        self._root = Container(children)
         self._root.gui = self
-        self._dirty_elements = [root]
+        self._dirty_elements: MutableSequence[Element] = [self._root]
         self._mark_dirty_listeners: MutableSet[Callable[[], Any]] = set()
 
     @property
