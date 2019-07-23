@@ -44,6 +44,11 @@ class Element(ABC):
 
     @property
     def parent(self) -> Optional[Element]:
+        '''...
+
+        - ``x.parent == y`` must be equivalent to ``x in y.children``.
+        - Consequently, you probably never want to set an Element's parent, unless you're writing your own Element class and implementing a method that adds a child. For example, ``my_list_element.append(e)`` will set ``e.parent``; end users should never have to worry about it.
+        '''
         return self._parent
     @parent.setter
     def parent(self, parent: Element) -> None:
@@ -53,6 +58,10 @@ class Element(ABC):
 
     @property
     def children(self) -> Sequence[Element]:
+        '''...
+
+        ``x.parent == y`` must be equivalent to ``x in y.children``.
+        '''
         return ()
 
     def walk(self) -> Iterator[Element]:
@@ -62,10 +71,10 @@ class Element(ABC):
 
     @property
     def gui(self) -> Optional[GUI]:
-        if self._gui is not None:
-            return self._gui
         if self.parent is not None:
             return self.parent.gui
+        if self._gui is not None:
+            return self._gui
         return None
     @gui.setter
     def gui(self, gui: GUI) -> None:
@@ -74,6 +83,7 @@ class Element(ABC):
         self._gui = gui
 
     def mark_dirty(self) -> None:
+        '''Notify the GUI that owns this element (if there is one) that it needs re-rendering.'''
         if self.gui is not None:
             self.gui.mark_dirty(self)
 
