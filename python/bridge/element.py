@@ -18,12 +18,16 @@ def _count():
 
 
 class Element(ABC):
-    _nonces = _count()
+    __nonces = _count()
     def __init__(self, parent: Optional[Element] = None) -> None:
         super().__init__()
-        self.id = str("_element_" + str(next(self._nonces)))
+        self._id = str(next(self.__nonces))
         self._parent = parent
         self._gui: Optional[AbstractGUI] = None
+
+    @property
+    def id(self) -> str:
+        return self._id
 
     @property
     def parent(self) -> Optional[Element]:
