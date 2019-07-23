@@ -1,5 +1,4 @@
 from bridge import *
-from bridge.async_server import serve
 
 t = Text('foo')
 def callback():
