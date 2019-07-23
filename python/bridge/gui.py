@@ -4,13 +4,13 @@ import asyncio
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Iterable, MutableSequence, Optional, Sequence, TYPE_CHECKING
+from typing import Any, Callable, Iterable, MutableSequence, MutableSet, Optional, Sequence, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .element import Element
     from .interchange import BridgeJson, PollResponse
 
-class GUI(ABC):
+class AbstractGUI(ABC):
     @property
     @abstractmethod
     def root(self) -> Element:
@@ -29,33 +29,32 @@ class GUI(ABC):
     def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
         '''...'''
 
-class AsyncGUI(GUI):
-    def __init__(self, root: Element, *, loop: asyncio.AbstractEventLoop = None) -> None:
-        self._loop = loop if (loop is not None) else asyncio.get_event_loop()
+    @abstractmethod
+    def add_listener(self, listener: Callable[[], Any]) -> None:
+        '''TODO(spencerpearson): this is awkward and weird.'''
+
+class GUI(AbstractGUI):
+    def __init__(self, root: Element) -> None:
         self._root = root
-        self._dirty_elements: MutableSequence[Element] = [root]
-        self._dirtied = asyncio.Condition(loop=loop)
         self._root.gui = self
+        self._dirty_elements = [root]
+        self._mark_dirty_listeners: MutableSet[Callable[[], Any]] = set()
 
     @property
     def root(self) -> Element:
         return self._root
 
+    def mark_dirty(self, element: Element) -> None:
+        self._dirty_elements.append(element)
+        for listener in self._mark_dirty_listeners:
+            listener()
+
     @property
     def time_step(self) -> int:
         return len(self._dirty_elements)
 
-    @property
-    def dirtied(self) -> asyncio.Condition:
-        return self._dirtied
-
     def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
-        return self._dirty_elements[start:end]
+        return self._dirty_elements[start : end]
 
-    async def _mark_dirty_async(self, element: Element) -> None:
-        async with self._dirtied:
-            self._dirty_elements.append(element)
-            self._dirtied.notify_all()
-
-    def mark_dirty(self, element: Element) -> None:
-        self._loop.create_task(self._mark_dirty_async(element))
+    def add_listener(self, listener: Callable[[], None]) -> None:
+        self._mark_dirty_listeners.add(listener)

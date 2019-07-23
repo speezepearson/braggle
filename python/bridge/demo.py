@@ -1,6 +1,6 @@
 import asyncio
 from pathlib import Path
-from bridge import List, Text, Button, TextField, AsyncGUI
+from bridge import List, Text, Button, TextField, GUI
 from bridge.async_server import serve
 
 client_html = Path(__file__).absolute().parent.parent.parent / 'elm-client' / 'index.html'
@@ -15,4 +15,4 @@ def callback2(s):
 t2 = Text('')
 tf = TextField(callback=callback2)
 
-serve(gui=AsyncGUI(List([t, b, t2, tf])), client_html=client_html)
+serve(gui=GUI(List([t, b, t2, tf])), client_html=client_html)

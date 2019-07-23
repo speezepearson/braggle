@@ -6,7 +6,7 @@ from typing import Callable, Iterator, Optional, Sequence, TYPE_CHECKING
 from . import interchange
 
 if TYPE_CHECKING:
-    from .gui import GUI
+    from .gui import AbstractGUI
 
 def _count():
     i = 0
@@ -21,7 +21,7 @@ class Element(ABC):
         super().__init__()
         self.id = str("_element_" + str(next(self._nonces)))
         self._parent = parent
-        self._gui: Optional[GUI] = None
+        self._gui: Optional[AbstractGUI] = None
 
     @property
     def parent(self) -> Optional[Element]:
@@ -51,14 +51,14 @@ class Element(ABC):
             yield from child.walk()
 
     @property
-    def gui(self) -> Optional[GUI]:
+    def gui(self) -> Optional[AbstractGUI]:
         if self.parent is not None:
             return self.parent.gui
         if self._gui is not None:
             return self._gui
         return None
     @gui.setter
-    def gui(self, gui: GUI) -> None:
+    def gui(self, gui: AbstractGUI) -> None:
         if self.parent is not None:
             raise RuntimeError('cannot set GUI of an Element that has a parent')
         self._gui = gui
@@ -107,9 +107,6 @@ class Text(Element):
         self.mark_dirty()
     def subtree_json(self):
         return interchange.text_json(self.text)
-    def handle_interaction(self, interaction):
-        if interaction.type == 'click':
-            self._callback()
 
 class Button(Element):
     def __init__(self, text: str, callback: Callable[[], None], **kwargs) -> None:
