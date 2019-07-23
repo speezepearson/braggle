@@ -6,7 +6,10 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode as D
 import Json.Encode as E
+import Url
+import Url.Parser
 
+type alias Token = String
 type alias Id = String
 type Subtree = Ref Id | Text String | Node String (List (Attribute Msg)) (List Subtree)
 type alias Element =
@@ -44,6 +47,7 @@ type alias Model =
     { elements : Dict.Dict Id Element
     , timeStep : TimeStep
     , root : Id
+    , token : Token
     }
 type Msg
     = Interacted Interaction
@@ -53,8 +57,8 @@ type Msg
 
 type Interaction = Clicked Id | Inputted Id String
 
-poll : TimeStep -> Cmd Msg
-poll ts =
+poll : Token -> TimeStep -> Cmd Msg
+poll token ts =
     let
         fromResult : Result Http.Error Msg -> Msg
         fromResult result = case result of
@@ -62,13 +66,13 @@ poll ts =
             Err err -> PollFailed err
     in
         Http.post
-            { url = "/poll"
+            { url = token ++ "/poll"
             , body = Http.jsonBody (E.int ts)
             , expect = Http.expectJson fromResult pollDecoder
             }
 
-notify : Interaction -> Cmd Msg
-notify interaction =
+notify : Token -> Interaction -> Cmd Msg
+notify token interaction =
     let
         payload : E.Value
         payload = case interaction of
@@ -76,40 +80,48 @@ notify interaction =
             Inputted id value -> E.object [("target", E.string id), ("type", E.string "input"), ("value", E.string value)]
     in
         Http.post
-            { url = "/interaction"
+            { url = token ++ "/interaction"
             , body = Http.jsonBody payload
             , expect = Http.expectWhatever (always Ignore)
             }
 
-init : () -> (Model,  Cmd Msg)
-init _ =
-    ( { elements = Dict.singleton "root" {id="root", subtree=(Text "Loading...")}
-      , timeStep = -1
-      , root = "root"
-      }
-    , poll -1
-    )
+init : () -> Url.Url -> navkey -> (Model,  Cmd Msg)
+init _ url _ =
+    let
+        token = Url.Parser.parse Url.Parser.string url |> Maybe.withDefault "/"
+    in
+        ( { elements = Dict.singleton "root" {id="root", subtree=(Text "Loading...")}
+          , timeStep = -1
+          , root = "root"
+          , token = token
+          }
+        , Debug.log token <| poll token -1
+        )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Interacted interaction -> (model, notify interaction)
+        Interacted interaction -> (model, notify model.token interaction)
         PollCompleted root timeStep elements ->
             ( { model
                 | root = root
                 , elements = model.elements |> Dict.union elements
                 , timeStep = timeStep
                 }
-            , poll timeStep
+            , poll model.token timeStep
             )
         PollFailed err -> Debug.todo (Debug.toString err)
         Ignore -> (model, Cmd.none)
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    case Dict.get model.root model.elements of
-        Nothing -> text "<NO ROOT?>"
-        Just {id, subtree} -> viewSubtree model.elements id subtree
+    { title="Bridge"
+    , body=
+        [ case Dict.get model.root model.elements of
+            Nothing -> text "<NO ROOT?>"
+            Just {id, subtree} -> viewSubtree model.elements id subtree
+        ]
+    }
 
 viewSubtree : Dict.Dict Id Element -> Id -> Subtree -> Html Msg
 viewSubtree elements id subtree =
@@ -127,4 +139,11 @@ viewSubtree elements id subtree =
             Nothing -> text "<NO ELEMENT?>"
             Just referent -> viewSubtree elements refId referent.subtree
 
-main = Browser.element {init=init, update=update, view=view, subscriptions=(always Sub.none)}
+main = Browser.application
+    { init=init
+    , update=update
+    , view=view
+    , subscriptions=(always Sub.none)
+    , onUrlRequest=(always Ignore)
+    , onUrlChange=(always Ignore)
+    }
