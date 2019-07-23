@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterator, Optional, Sequence, TYPE_CHECKING
+from typing import Callable, Iterator, Optional, Sequence, TypeVar, TYPE_CHECKING
 
 from . import interchange
 
 if TYPE_CHECKING:
     from .gui import AbstractGUI
+
+F = TypeVar('F', bound=Callable)
 
 def _count():
     i = 0
@@ -121,7 +123,7 @@ class Text(Element):
         return interchange.text_json(self.text)
 
 class Button(Element):
-    def __init__(self, text: str, callback: Callable[[], None], **kwargs) -> None:
+    def __init__(self, text: str, callback: Optional[Callable[[], None]] = None, **kwargs) -> None:
         super().__init__(**kwargs)
         self._text = text
         self._callback = callback
@@ -129,7 +131,18 @@ class Button(Element):
         return interchange.node_json('button', {}, [interchange.text_json(self._text)])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
-            self._callback()
+            if self._callback is not None:
+                self._callback()
+
+    def set_callback(self, f: F) -> F:
+        '''Set the Button's ``callback``. Returns the same function, for use as a decorator.
+            >>> button = Button("click")
+            >>> @button.set_callback
+            ... def callback():
+            ...   print("Button was clicked!")
+        '''
+        self._callback = f
+        return f
 
 class TextField(Element):
     def __init__(self, callback: Callable[[str], None], **kwargs) -> None:
