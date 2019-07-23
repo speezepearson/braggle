@@ -7,7 +7,7 @@ b = Button(text='click', callback=callback)
 
 def callback2(s):
     t2.text = s
-t2 = Text('')
+t2 = CodeSnippet('')
 tf = TextField(callback=callback2)
 
 serve(GUI(List([t, b, t2, tf])))

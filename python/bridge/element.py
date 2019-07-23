@@ -115,6 +115,8 @@ class Container(Element):
 class Text(Element):
     def __init__(self, text: str, **kwargs) -> None:
         super().__init__(**kwargs)
+        if not isinstance(text, str):
+            raise TypeError(text)
         self._text = text
     @property
     def text(self) -> str:
@@ -126,17 +128,56 @@ class Text(Element):
     def subtree_json(self):
         return interchange.text_json(self.text)
 
+class CodeSnippet(Text):
+    def subtree_json(self):
+        return interchange.node_json(
+            'code',
+            {'style': 'white-space:pre'},
+            [interchange.text_json(self.text)],
+        )
+class CodeBlock(Text):
+    def subtree_json(self):
+        return interchange.node_json(
+            'pre',
+            {},
+            [interchange.text_json(self.text)],
+        )
+class Link(Text):
+    """A `hyperlink <http://github.com/speezepearson/browsergui>`_."""
+    def __init__(self, *, text: str, url: str, **kwargs):
+        super().__init__(text, **kwargs)
+        self._url = url
+
+    def subtree_json(self):
+        return interchange.node_json(
+            'a',
+            {'href': self.url},
+            [interchange.text_json(self.text)],
+        )
+
+    @property
+    def url(self) -> str:
+        '''The URL to which the link points.'''
+        return self._url
+    @url.setter
+    def url(self, url: str) -> None:
+        self._url = url
+        self.mark_dirty()
+
+
 class Button(Element):
     def __init__(self, text: str, callback: Optional[Callable[[], None]] = None, **kwargs) -> None:
         super().__init__(**kwargs)
+        if not isinstance(text, str):
+            raise TypeError(text)
         self._text = text
-        self._callback = callback
+        self.callback = callback
     def subtree_json(self):
         return interchange.node_json('button', {}, [interchange.text_json(self._text)])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
-            if self._callback is not None:
-                self._callback()
+            if self.callback is not None:
+                self.callback()
 
     def set_callback(self, f: F) -> F:
         '''Set the Button's ``callback``. Returns the same function, for use as a decorator.
@@ -145,7 +186,7 @@ class Button(Element):
             ... def callback():
             ...   print("Button was clicked!")
         '''
-        self._callback = f
+        self.callback = f
         return f
 
 class TextField(Element):
