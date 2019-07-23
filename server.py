@@ -16,7 +16,11 @@ class Interaction:
 def bridge_text_json(s: str):
     return {'text': s}
 def bridge_node_json(node_name, attributes, children):
-    return {'name': node_name, 'attributes': attributes, 'children': children}
+    return {
+        'name': node_name,
+        'attributes': attributes,
+        'children': [{'ref': c.id} if isinstance(c, Element) else c for c in children],
+    }
 
 def _count():
     i = 0
@@ -67,9 +71,6 @@ class Element(ABC):
         if self.gui is not None:
             self.gui.mark_dirty(self)
 
-    def ref_json(self):
-        return {"ref": self.id}
-
     def handle_interaction(self, Interaction) -> None:
         pass
 
@@ -93,7 +94,7 @@ class List(Element):
         return bridge_node_json(
             'ul',
             [],
-            [bridge_node_json('li', [], [child.ref_json()])
+            [bridge_node_json('li', [], [child])
              for child in self._children],
         )
 
