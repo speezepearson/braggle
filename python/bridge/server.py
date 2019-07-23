@@ -9,6 +9,9 @@ from aiohttp import web
 from .gui import AbstractGUI
 from .interchange import Interaction, poll_response
 
+CLIENT_HTML = Path(__file__).absolute().parent.parent.parent / 'elm-client' / 'index.html'
+assert CLIENT_HTML.is_file()
+
 _T = TypeVar('_T')
 def _union(xss: Iterable[Iterable[_T]]) -> Set[_T]:
     result: MutableSet[_T] = set()
@@ -16,8 +19,8 @@ def _union(xss: Iterable[Iterable[_T]]) -> Set[_T]:
         result |= set(xs)
     return set(result)
 
-async def index(request: web.Request, client_html: Path) -> web.FileResponse:
-    return web.FileResponse(client_html)
+async def index(request: web.Request) -> web.FileResponse:
+    return web.FileResponse(CLIENT_HTML)
 
 async def poll(request: web.Request, gui: AbstractGUI, condition: asyncio.Condition) -> web.Response:
     since = await request.json()
@@ -35,14 +38,14 @@ async def interaction(request: web.Request, gui: AbstractGUI, condition: asyncio
         return web.Response(status=404)
 
 def build_routes(
-    gui: AbstractGUI, client_html: Path, condition: asyncio.Condition) -> Sequence[web.RouteDef]:
+    gui: AbstractGUI, condition: asyncio.Condition) -> Sequence[web.RouteDef]:
     return [
-        web.RouteDef(method='GET', path='/', handler=functools.partial(index, client_html=client_html), kwargs={}),
+        web.RouteDef(method='GET', path='/', handler=index, kwargs={}),
         web.RouteDef(method='POST', path='/poll', handler=functools.partial(poll, gui=gui, condition=condition), kwargs={}),
         web.RouteDef(method='POST', path='/interaction', handler=functools.partial(interaction, gui=gui, condition=condition), kwargs={}),
     ]
 
-def serve(gui: AbstractGUI, client_html: Path, *, loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
+def serve(gui: AbstractGUI, *, loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
     loop_ = loop if (loop is not None) else asyncio.get_event_loop()
     condition = asyncio.Condition(loop=loop_)
     async def notify_all():
@@ -50,5 +53,5 @@ def serve(gui: AbstractGUI, client_html: Path, *, loop: Optional[asyncio.Abstrac
             condition.notify_all()
     gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop_))
     app = web.Application(loop=loop_)
-    app.add_routes(build_routes(gui=gui, client_html=client_html, condition=condition))
+    app.add_routes(build_routes(gui=gui, condition=condition))
     web.run_app(app, port=4392)

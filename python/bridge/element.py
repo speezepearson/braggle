@@ -94,6 +94,18 @@ class List(Element):
              for child in self._children],
         )
 
+class Container(Element):
+    def __init__(self, children: Optional[Sequence[Element]], **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._children = list(children) if (children is not None) else []
+        for child in self._children:
+            child.parent = self
+    @property
+    def children(self) -> Sequence[Element]:
+        return self._children
+    def subtree_json(self):
+        return interchange.node_json('div', {}, self.children)
+
 class Text(Element):
     def __init__(self, text: str, **kwargs) -> None:
         super().__init__(**kwargs)
