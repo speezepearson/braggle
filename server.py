@@ -15,8 +15,8 @@ class Interaction:
 
 def bridge_text_json(s: str):
     return {'text': s}
-def bridge_node_json(node_name, attributes, children, id=None):
-    return {'name': node_name, 'attributes': attributes, 'children': children, 'id': id}
+def bridge_node_json(node_name, attributes, children):
+    return {'name': node_name, 'attributes': attributes, 'children': children}
 
 def _count():
     i = 0
@@ -86,7 +86,6 @@ class List(Element):
             [],
             [bridge_node_json('li', [], [child.ref_json()])
              for child in self._children],
-            id=self.id,
         )
 
 class Text(Element):
@@ -120,7 +119,7 @@ class Button(Element):
         self._text = text
         self._callback = callback
     def subtree_json(self):
-        return bridge_node_json('button', [], [bridge_text_json(self._text)], id=self.id)
+        return bridge_node_json('button', [], [bridge_text_json(self._text)])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
             self._callback()
@@ -131,7 +130,7 @@ class TextField(Element):
         self._value = ''
         self._callback = callback
     def subtree_json(self):
-        return bridge_node_json('input', [('value', self._value)], [], id=self.id)
+        return bridge_node_json('input', [('value', self._value)], [])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
             self._callback()
