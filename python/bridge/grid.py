@@ -1,4 +1,4 @@
-from typing import Iterable, MutableSequence, Optional
+from typing import MutableSequence, Optional, Sequence
 
 from .element import Element
 from . import interchange
@@ -46,8 +46,8 @@ class Grid(Element):
                     self[i,j] = cell
 
     @property
-    def children(self) -> Iterable[Element]:
-        return (cell for row in self._cells for cell in row if (cell is not None))
+    def children(self) -> Sequence[Element]:
+        return [cell for row in self._cells for cell in row if (cell is not None)]
 
     def subtree_json(self):
         return interchange.node_json(
@@ -127,6 +127,7 @@ class Grid(Element):
         self._cells[i][j] = child
 
         self.mark_dirty()
+        child.mark_dirty(recursive=True)
 
     def __delitem__(self, indices):
         (i, j) = indices

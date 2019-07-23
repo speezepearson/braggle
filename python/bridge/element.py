@@ -69,10 +69,13 @@ class Element(ABC):
             raise RuntimeError('cannot set GUI of an Element that has a parent')
         self._gui = gui
 
-    def mark_dirty(self) -> None:
+    def mark_dirty(self, *, recursive: bool = False) -> None:
         '''Notify the GUI that owns this element (if there is one) that it needs re-rendering.'''
         if self.gui is not None:
             self.gui.mark_dirty(self)
+        if recursive:
+            for child in self.children:
+                child.mark_dirty(recursive=True)
 
     def handle_interaction(self, Interaction) -> None:
         pass

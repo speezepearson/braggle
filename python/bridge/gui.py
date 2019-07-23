@@ -38,7 +38,7 @@ class GUI(AbstractGUI):
     def __init__(self, *children: Element) -> None:
         self._root = Container(children)
         self._root.gui = self
-        self._dirty_elements: MutableSequence[Element] = [self._root]
+        self._dirty_elements: MutableSequence[Element] = list(self._root.walk())
         self._mark_dirty_listeners: MutableSet[Callable[[], Any]] = set()
 
     @property
@@ -60,11 +60,8 @@ class GUI(AbstractGUI):
         return poll_response(
             root=self.root,
             time_step=self.time_step,
-            elements=set().union(*(e.walk() for e in recently_dirtied)), # type: ignore
+            elements=recently_dirtied,
         )
-        # TODO: don't walk the whole tree from each modified element;
-        #   instead, keep track of when elements are added from the tree,
-        #   so that we don't have to walk the tree to ensure we get all the added elements
 
     def add_listener(self, listener: Callable[[], None]) -> None:
         self._mark_dirty_listeners.add(listener)
