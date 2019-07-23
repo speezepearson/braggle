@@ -6,9 +6,10 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Iterable, MutableSequence, MutableSet, Optional, Sequence, TYPE_CHECKING
 
+from .interchange import BridgeJson, PollResponse, poll_response
+
 if TYPE_CHECKING:
     from .element import Element
-    from .interchange import BridgeJson, PollResponse
 
 class AbstractGUI(ABC):
     @property
@@ -26,12 +27,12 @@ class AbstractGUI(ABC):
         '''...'''
 
     @abstractmethod
-    def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
+    def render_poll_response(self, since: int = 0) -> PollResponse:
         '''...'''
 
     @abstractmethod
     def add_listener(self, listener: Callable[[], Any]) -> None:
-        '''TODO(spencerpearson): this is awkward and weird.'''
+        '''TODO: this is awkward and weird.'''
 
 class GUI(AbstractGUI):
     def __init__(self, root: Element) -> None:
@@ -53,8 +54,16 @@ class GUI(AbstractGUI):
     def time_step(self) -> int:
         return len(self._dirty_elements)
 
-    def get_dirtied_elements(self, start: int = 0, end: Optional[int] = None) -> Iterable[Element]:
-        return self._dirty_elements[start : end]
+    def render_poll_response(self, since: int = 0) -> PollResponse:
+        recently_dirtied = set(self._dirty_elements[since:])
+        return poll_response(
+            root=self.root,
+            time_step=self.time_step,
+            elements=set().union(*(e.walk() for e in recently_dirtied)), # type: ignore
+        )
+        # TODO: don't walk the whole tree from each modified element;
+        #   instead, keep track of when elements are added from the tree,
+        #   so that we don't have to walk the tree to ensure we get all the added elements
 
     def add_listener(self, listener: Callable[[], None]) -> None:
         self._mark_dirty_listeners.add(listener)

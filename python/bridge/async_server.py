@@ -23,13 +23,7 @@ async def poll(request: web.Request, gui: AbstractGUI, condition: asyncio.Condit
     since = await request.json()
     async with condition:
         await condition.wait_for(lambda: gui.time_step > since)
-        t = gui.time_step
-        recently_dirtied = set(gui.get_dirtied_elements(start=since, end=t))
-        return web.json_response(poll_response(
-            root=gui.root,
-            time_step=t,
-            elements=_union(e.walk() for e in recently_dirtied),
-        ))
+        return web.json_response(gui.render_poll_response(since=since))
 
 async def interaction(request: web.Request, gui: AbstractGUI, condition: asyncio.Condition) -> web.Response:
     j = await request.json()
