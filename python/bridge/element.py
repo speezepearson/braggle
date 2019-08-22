@@ -84,7 +84,73 @@ class Element(ABC):
     def subtree_json(self):
         pass
 
-class List(Element, MutableSequence[Element]):
+class SequenceElement(Element, MutableSequence[Element]):
+    def __init__(self, children: Sequence[Element] = (), **kwargs) -> None:
+        if not all(isinstance(child, Element) for child in children):
+            raise TypeError("List children must be Elements")
+        super().__init__(**kwargs)
+        self._children: MutableSequence[Element] = []
+        self[:] = children
+
+    @property
+    def children(self) -> Sequence[Element]:
+        return tuple(self._children)
+
+    @overload
+    def __getitem__(self, index: int) -> Element:
+        pass
+    @overload
+    def __getitem__(self, index: slice) -> MutableSequence[Element]:
+        pass
+    def __getitem__(self, index):
+        return self.children[index]
+
+    def __update_children(self, new_children: MutableSequence[Element]) -> None:
+        old_children = self._children
+        for added_child in set(new_children) - set(old_children):
+            added_child.parent = self
+
+        self._children = new_children
+
+        for removed_child in set(old_children) - set(new_children):
+            removed_child.parent = None
+
+        self.mark_dirty()
+
+
+    @overload
+    def __setitem__(self, index: int, child: Element) -> None:
+        pass
+    @overload
+    def __setitem__(self, index: slice, child: Iterable[Element]) -> None:
+        pass
+    def __setitem__(self, index, child):
+        new_children = list(self._children)
+        new_children[index] = child
+        self.__update_children(new_children)
+
+    @overload
+    def __delitem__(self, index: int) -> None:
+        pass
+    @overload
+    def __delitem__(self, index: slice) -> None:
+        pass
+    def __delitem__(self, index):
+        new_children = list(self._children)
+        del new_children[index]
+        self.__update_children(new_children)
+
+    def __len__(self) -> int:
+        return len(self.children)
+
+    def insert(self, index: int, child: Element) -> None:
+        if not isinstance(child, Element):
+            raise TypeError("List children must be Elements")
+        child.parent = self
+        self._children.insert(index, child)
+        self.mark_dirty()
+
+class List(SequenceElement):
     """A list of elements.
 
     May be numbered or bulleted, according to the `numbered` property (a boolean).
@@ -99,15 +165,8 @@ class List(Element, MutableSequence[Element]):
         del my_list[2]
     """
     def __init__(self, children: Sequence[Element] = (), numbered: bool = False, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._children: MutableSequence[Element] = []
+        super().__init__(children=children, **kwargs)
         self._numbered = numbered
-        for child in children:
-            self.append(child)
-
-    @property
-    def children(self) -> Sequence[Element]:
-        return tuple(self._children)
 
     @property
     def numbered(self) -> bool:
@@ -115,59 +174,6 @@ class List(Element, MutableSequence[Element]):
     @numbered.setter
     def numbered(self, value: bool) -> None:
         self._numbered = value
-        self.mark_dirty()
-
-    @overload
-    def __getitem__(self, index: int) -> Element:
-        pass
-    @overload
-    def __getitem__(self, index: slice) -> MutableSequence[Element]:
-        pass
-    def __getitem__(self, index):
-        return self.children[index]
-
-    @overload
-    def __setitem__(self, index: int, child: Element) -> None:
-        pass
-    @overload
-    def __setitem__(self, index: slice, child: Iterable[Element]) -> None:
-        pass
-    def __setitem__(self, index, child):
-        old_children = self._children
-        new_children = list(self._children)
-        new_children[index] = child
-
-        for added_child in set(new_children) - set(old_children):
-            added_child.parent = self
-
-        self._children = new_children
-
-        for removed_child in set(old_children) - set(new_children):
-            removed_child.parent = None
-
-        self.mark_dirty()
-
-
-    def __delitem__(self, index):
-        old_children = self._children
-        new_children = list(self._children)
-        del new_children[index]
-
-        self._children = new_children
-
-        for removed_child in set(old_children) - set(new_children):
-            removed_child.parent = None
-
-        self.mark_dirty()
-
-    def __len__(self) -> int:
-        return len(self.children)
-
-    def insert(self, index: int, child: Element) -> None:
-        if not isinstance(child, Element):
-            raise TypeError("List children must be Elements")
-        child.parent = self
-        self._children.insert(index, child)
         self.mark_dirty()
 
     def subtree_json(self):
@@ -178,15 +184,7 @@ class List(Element, MutableSequence[Element]):
              for child in self._children],
         )
 
-class Container(Element):
-    def __init__(self, children: Optional[Sequence[Element]], **kwargs) -> None:
-        super().__init__(**kwargs)
-        self._children = list(children) if (children is not None) else []
-        for child in self._children:
-            child.parent = self
-    @property
-    def children(self) -> Sequence[Element]:
-        return self._children
+class Container(SequenceElement):
     def subtree_json(self):
         return interchange.node_json('div', {}, self.children)
 
