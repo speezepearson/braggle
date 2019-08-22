@@ -27,7 +27,7 @@ def test_getitem():
     with raises(IndexError):
         top[2]
 
-def test_delitem():
+def test_delitem_intindex():
     first = Text('1')
     second = Text('2')
     top = List(children=(first, second))
@@ -38,6 +38,14 @@ def test_delitem():
     assert second == top[0]
     with raises(IndexError):
         top[1]
+
+def test_delitem_sliceindex():
+    numbers = [Text(c) for c in '1234567890']
+    l = List(numbers)
+
+    del l[2:7:2]
+    assert all(t.parent is None for t in numbers[2:7:2])
+    assert [t.text for t in l] == list('1246890')
 
 @contextlib.contextmanager
 def assertMarksDirty(element: Element):
@@ -51,7 +59,7 @@ def test_delitem__marks_dirty():
     with assertMarksDirty(l):
         del l[0]
 
-def test_setitem():
+def test_setitem_intindex():
     first = Text('1')
     second = Text('2')
     new = Text('new')
@@ -62,6 +70,15 @@ def test_setitem():
     assert first.parent is None
     assert top == new.parent
     assert list(top.children) == [new, second]
+
+def test_setitem_sliceindex():
+    numbers = [Text(c) for c in '1234567890']
+    letters = [Text(c) for c in 'abc']
+    l = List(numbers)
+    l[2:7:2] = letters
+    assert all(t.parent is None for t in numbers[2:6:2])
+    assert all(t.parent is l for t in letters)
+    assert [t.text for t in l] == list('12a4b6c890')
 
 def test_setitem__marks_dirty():
     l = List([Text('a')])

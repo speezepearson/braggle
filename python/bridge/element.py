@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import collections.abc
-
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterator, MutableSequence, Optional, Sequence, TypeVar, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, MutableSequence, Optional, overload, Sequence, TypeVar, TYPE_CHECKING
 
 from . import interchange
 
@@ -86,7 +84,7 @@ class Element(ABC):
     def subtree_json(self):
         pass
 
-class List(Element, collections.abc.MutableSequence):
+class List(Element, MutableSequence[Element]):
     """A list of elements.
 
     May be numbered or bulleted, according to the `numbered` property (a boolean).
@@ -119,28 +117,53 @@ class List(Element, collections.abc.MutableSequence):
         self._numbered = value
         self.mark_dirty()
 
+    @overload
+    def __getitem__(self, index: int) -> Element:
+        pass
+    @overload
+    def __getitem__(self, index: slice) -> MutableSequence[Element]:
+        pass
     def __getitem__(self, index):
         return self.children[index]
-    def __setitem__(self, index, child):
-        if isinstance(index, slice):
-            raise NotImplementedError("slice assignment to Lists not yet supported")
 
-        del self[index]
-        self.insert(index, child)
+    @overload
+    def __setitem__(self, index: int, child: Element) -> None:
+        pass
+    @overload
+    def __setitem__(self, index: slice, child: Iterable[Element]) -> None:
+        pass
+    def __setitem__(self, index, child):
+        old_children = self._children
+        new_children = list(self._children)
+        new_children[index] = child
+
+        for added_child in set(new_children) - set(old_children):
+            added_child.parent = self
+
+        self._children = new_children
+
+        for removed_child in set(old_children) - set(new_children):
+            removed_child.parent = None
+
+        self.mark_dirty()
+
 
     def __delitem__(self, index):
-        if isinstance(index, slice):
-            raise NotImplementedError("slice deletion from Lists not yet supported")
+        old_children = self._children
+        new_children = list(self._children)
+        del new_children[index]
 
-        old_child = self._children[index]
-        del self._children[index]
-        old_child.parent = None
+        self._children = new_children
+
+        for removed_child in set(old_children) - set(new_children):
+            removed_child.parent = None
+
         self.mark_dirty()
 
     def __len__(self) -> int:
         return len(self.children)
 
-    def insert(self, index, child):
+    def insert(self, index: int, child: Element) -> None:
         if not isinstance(child, Element):
             raise TypeError("List children must be Elements")
         child.parent = self
