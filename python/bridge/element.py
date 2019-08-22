@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import collections.abc
+
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterator, Optional, Sequence, TypeVar, TYPE_CHECKING
+from typing import Callable, Iterator, MutableSequence, Optional, Sequence, TypeVar, TYPE_CHECKING
 
 from . import interchange
 
@@ -84,20 +86,70 @@ class Element(ABC):
     def subtree_json(self):
         pass
 
-class List(Element):
-    def __init__(self, children: Sequence[Element], **kwargs) -> None:
+class List(Element, collections.abc.MutableSequence):
+    """A list of elements.
+
+    May be numbered or bulleted, according to the `numbered` property (a boolean).
+
+    Supports pretty much all the operations that a normal list does, e.g.
+
+        my_list = List(items=[first, second])
+        my_list.append(third)
+        my_list.insert(0, new_first)
+        assert my_list[0] is new_first
+        my_list[1] = new_second
+        del my_list[2]
+    """
+    def __init__(self, children: Sequence[Element] = (), numbered: bool = False, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._children = children
-        for child in self._children:
-            child.parent = self
+        self._children: MutableSequence[Element] = []
+        self._numbered = numbered
+        for child in children:
+            self.append(child)
 
     @property
     def children(self) -> Sequence[Element]:
-        return self._children
+        return tuple(self._children)
+
+    @property
+    def numbered(self) -> bool:
+        return self._numbered
+    @numbered.setter
+    def numbered(self, value: bool) -> None:
+        self._numbered = value
+        self.mark_dirty()
+
+    def __getitem__(self, index):
+        return self.children[index]
+    def __setitem__(self, index, child):
+        if isinstance(index, slice):
+            raise NotImplementedError("slice assignment to Lists not yet supported")
+
+        del self[index]
+        self.insert(index, child)
+
+    def __delitem__(self, index):
+        if isinstance(index, slice):
+            raise NotImplementedError("slice deletion from Lists not yet supported")
+
+        old_child = self._children[index]
+        del self._children[index]
+        old_child.parent = None
+        self.mark_dirty()
+
+    def __len__(self) -> int:
+        return len(self.children)
+
+    def insert(self, index, child):
+        if not isinstance(child, Element):
+            raise TypeError("List children must be Elements")
+        child.parent = self
+        self._children.insert(index, child)
+        self.mark_dirty()
 
     def subtree_json(self):
         return interchange.node_json(
-            'ul',
+            'ol' if self.numbered else 'ul',
             {},
             [interchange.node_json('li', {}, [child])
              for child in self._children],
