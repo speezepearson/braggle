@@ -20,7 +20,7 @@ TRIGGERS = [
         "command": [
             "bash",
             "-c",
-            f"PYTHONPATH=\"$PYTHONPATH:.\" chime-success {pytest} --color=yes >{quoted_logfile} 2>&1"
+            f"export PYTHONPATH=\"$PYTHONPATH:.\"; mypy bridge && {pytest} --color=yes >{quoted_logfile} 2>&1; chime-success [ \"$?\" = 0 ]"
         ]
     }
 ]
