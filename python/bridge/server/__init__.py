@@ -12,6 +12,7 @@ from aiohttp import web
 
 from ..gui import AbstractGUI
 from ..interchange import Interaction, poll_response
+from . import _auth
 
 CLIENT_HTML = Path(__file__).absolute().parent.parent.parent.parent / 'elm-client' / 'index.html'
 assert CLIENT_HTML.is_file()
@@ -51,34 +52,11 @@ async def interaction(
                 return web.Response(text='ok')
         return web.Response(status=404)
 
-async def _redirect_to_index(request: web.Request) -> web.Response:
-    result = web.HTTPPermanentRedirect('/')
-    return result
-
-def _build_auth_middleware(
-    token: str,
-):
-    @web.middleware
-    async def middleware(
-        request: web.Request,
-        handler: Callable[[web.Request], Awaitable[web.Response]],
-    ) -> web.Response:
-        if request.path == f'/auth/{token}':
-            result = await handler(request)
-            result.set_cookie('token', token)
-            return result
-        if request.cookies.get('token') != token:
-            raise web.HTTPForbidden(reason='bad/no auth token')
-        return await handler(request)
-    return middleware
-
 def build_routes(
     gui: AbstractGUI,
     condition: asyncio.Condition,
-    token: str,
 ) -> Sequence[web.RouteDef]:
     return [
-        web.RouteDef(method='GET', path=f'/auth/{token}', handler=_redirect_to_index, kwargs={}),
         web.RouteDef(method='GET', path=f'/', handler=index, kwargs={}),
         web.RouteDef(method='POST', path=f'/poll', handler=functools.partial(poll, gui=gui, condition=condition), kwargs={}),
         web.RouteDef(method='POST', path=f'/interaction', handler=functools.partial(interaction, gui=gui, condition=condition), kwargs={}),
@@ -90,10 +68,6 @@ def _get_open_port() -> int:
     port = s.getsockname()[1]
     s.close()
     return port
-
-def _generate_token() -> str:
-    with open('/dev/urandom', 'rb') as f:
-        return base64.b64encode(f.read(32), b'-_').decode('utf8').rstrip('=')
 
 def serve(
     gui: AbstractGUI,
@@ -107,7 +81,7 @@ def serve(
 
     loop = loop if (loop is not None) else asyncio.get_event_loop()
     port = port if (port is not None) else _get_open_port()
-    token = token if (token is not None) else _generate_token()
+    token = token if (token is not None) else _auth.generate_token()
 
     condition = asyncio.Condition(loop=loop)
 
@@ -115,8 +89,9 @@ def serve(
         async with condition:
             condition.notify_all()
     gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop))
-    app = web.Application(loop=loop, middlewares=[_build_auth_middleware(token=token)])
-    app.add_routes(build_routes(gui=gui, condition=condition, token=token))
+    app = web.Application(loop=loop, middlewares=[_auth.build_middleware(token=token)])
+    app.add_routes(_auth.build_routes(token=token))
+    app.add_routes(build_routes(gui=gui, condition=condition))
     url = f'http://localhost:{port}/auth/{token}'
     if open_browser:
         async def _open_browser(_):
