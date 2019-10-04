@@ -2,7 +2,6 @@ import asyncio
 import base64
 import functools
 import socket
-import threading
 import time
 import webbrowser
 
@@ -69,11 +68,10 @@ def _get_open_port() -> int:
     port = s.getsockname()[1]
     s.close()
     return port
-def _open_page_soon(url: str, delay_sec: float = 0.1) -> None:
-    def f() -> None:
-        time.sleep(delay_sec)
-        webbrowser.open(url)
-    threading.Thread(target=f).start()
+
+def _generate_token() -> str:
+    with open('/dev/urandom', 'rb') as f:
+        return base64.b64encode(f.read(32), b'-_').decode('utf8').rstrip('=')
 
 def serve(
     gui: AbstractGUI,
@@ -82,10 +80,11 @@ def serve(
     host: str = 'localhost',
     port: Optional[int] = None,
     open_browser: bool = True,
+    token: Optional[str] = None
 ) -> None:
 
-    with open('/dev/urandom', 'rb') as f:
-        token = base64.b64encode(f.read(32), b'-_').decode('utf8').rstrip('=')
+    if token is None:
+        token = _generate_token()
     loop_ = loop if (loop is not None) else asyncio.get_event_loop()
     condition = asyncio.Condition(loop=loop_)
     async def notify_all():
@@ -96,6 +95,7 @@ def serve(
     app.add_routes(build_routes(gui=gui, condition=condition, token=token))
     if port is None:
         port = _get_open_port()
-    if open_browser:
-        _open_page_soon(f'http://localhost:{port}/{token}')
+    url = f'http://localhost:{port}/{token}'
+    async def open_browser(_): webbrowser.open(url)
+    app.on_startup.append(open_browser)
     web.run_app(app, host=host, port=port)
