@@ -6,7 +6,7 @@ import time
 import webbrowser
 
 from pathlib import Path
-from typing import Iterable, MutableSet, Optional, Sequence, Set, Tuple, TypeVar
+from typing import Iterable, MutableSet, Optional, Sequence, Set, Tuple, TypeVar, Callable
 
 from aiohttp import web
 
@@ -51,15 +51,37 @@ async def interaction(
                 return web.Response(text='ok')
         return web.Response(status=404)
 
+async def set_auth_cookie(request: web.Request) -> web.Response:
+    result = web.HTTPPermanentRedirect('/')
+    return result
+
+def build_auth_middleware(
+    token: str,
+):
+    @web.middleware
+    async def middleware(
+        request: web.Request,
+        handler: web.RequestHandler,
+    ) -> web.Response:
+        if request.path == f'/auth/{token}':
+            result = await handler(request)
+            result.set_cookie('token', token)
+            return result
+        if request.cookies.get('token') != token:
+            raise web.HTTPForbidden(reason='bad/no auth token')
+        return await handler(request)
+    return middleware
+
 def build_routes(
     gui: AbstractGUI,
     condition: asyncio.Condition,
     token: str,
 ) -> Sequence[web.RouteDef]:
     return [
-        web.RouteDef(method='GET', path=f'/{token}', handler=index, kwargs={}),
-        web.RouteDef(method='POST', path=f'/{token}/poll', handler=functools.partial(poll, gui=gui, condition=condition), kwargs={}),
-        web.RouteDef(method='POST', path=f'/{token}/interaction', handler=functools.partial(interaction, gui=gui, condition=condition), kwargs={}),
+        web.RouteDef(method='GET', path=f'/auth/{token}', handler=set_auth_cookie, kwargs={}),
+        web.RouteDef(method='GET', path=f'/', handler=index, kwargs={}),
+        web.RouteDef(method='POST', path=f'/poll', handler=functools.partial(poll, gui=gui, condition=condition), kwargs={}),
+        web.RouteDef(method='POST', path=f'/interaction', handler=functools.partial(interaction, gui=gui, condition=condition), kwargs={}),
     ]
 
 def _get_open_port() -> int:
@@ -82,7 +104,6 @@ def serve(
     open_browser: bool = True,
     token: Optional[str] = None
 ) -> None:
-
     if token is None:
         token = _generate_token()
     loop_ = loop if (loop is not None) else asyncio.get_event_loop()
@@ -91,11 +112,14 @@ def serve(
         async with condition:
             condition.notify_all()
     gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop_))
-    app = web.Application(loop=loop_)
+    app = web.Application(loop=loop_, middlewares=[build_auth_middleware(token=token)])
     app.add_routes(build_routes(gui=gui, condition=condition, token=token))
     if port is None:
         port = _get_open_port()
-    url = f'http://localhost:{port}/{token}'
-    async def open_browser(_): webbrowser.open(url)
-    app.on_startup.append(open_browser)
+    url = f'http://localhost:{port}/auth/{token}'
+    if open_browser:
+        async def open_browser(_):
+            print('serving on:', url) # TODO: figure out a better way to yield this information; logging?
+            webbrowser.open(url)
+        app.on_startup.append(open_browser)
     web.run_app(app, host=host, port=port)
