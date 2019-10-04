@@ -6,7 +6,7 @@ import time
 import webbrowser
 
 from pathlib import Path
-from typing import Iterable, MutableSet, Optional, Sequence, Set, Tuple, TypeVar, Callable
+from typing import Iterable, MutableSet, Optional, Sequence, Set, Tuple, TypeVar, Callable, Awaitable
 
 from aiohttp import web
 
@@ -61,7 +61,7 @@ def build_auth_middleware(
     @web.middleware
     async def middleware(
         request: web.Request,
-        handler: web.RequestHandler,
+        handler: Callable[[web.Request], Awaitable[web.Response]],
     ) -> web.Response:
         if request.path == f'/auth/{token}':
             result = await handler(request)
@@ -118,8 +118,8 @@ def serve(
         port = _get_open_port()
     url = f'http://localhost:{port}/auth/{token}'
     if open_browser:
-        async def open_browser(_):
+        async def _open_browser(_):
             print('serving on:', url) # TODO: figure out a better way to yield this information; logging?
             webbrowser.open(url)
-        app.on_startup.append(open_browser)
+        app.on_startup.append(_open_browser)
     web.run_app(app, host=host, port=port)
