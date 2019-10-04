@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterable, Iterator, MutableSequence, Optional, overload, Sequence, TypeVar, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, TypeVar, TYPE_CHECKING
 
 from . import interchange
+from .types import ElementId
 
 if TYPE_CHECKING:
     from .gui import AbstractGUI
@@ -16,17 +17,16 @@ def _count():
         yield i
         i += 1
 
-
 class Element(ABC):
     __nonces = _count()
     def __init__(self, parent: Optional[Element] = None) -> None:
         super().__init__()
-        self._id = str(next(self.__nonces))
+        self._id = ElementId(str(next(self.__nonces)))
         self._parent = parent
         self._gui: Optional[AbstractGUI] = None
 
     @property
-    def id(self) -> str:
+    def id(self) -> ElementId:
         return self._id
 
     @property

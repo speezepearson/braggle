@@ -9,6 +9,7 @@ from typing import Any, Callable, Iterable, MutableSequence, MutableSet, Optiona
 from .interchange import BridgeJson, PollResponse, poll_response
 
 from .element import Element, Container
+from .types import TimeStep
 
 class AbstractGUI(ABC):
     @property
@@ -51,8 +52,8 @@ class GUI(AbstractGUI):
             listener()
 
     @property
-    def time_step(self) -> int:
-        return len(self._dirty_elements)
+    def time_step(self) -> TimeStep:
+        return TimeStep(len(self._dirty_elements))
 
     def render_poll_response(self, since: int = 0) -> PollResponse:
         since = max(since, 0)
