@@ -168,6 +168,9 @@ class List(SequenceElement):
         super().__init__(children=children, **kwargs)
         self._numbered = numbered
 
+    def __repr__(self) -> str:
+        return f'List({self.children!r}, numbered={self.numbered!r})'
+
     @property
     def numbered(self) -> bool:
         return self._numbered
@@ -204,6 +207,9 @@ class Text(Element):
     def subtree_json(self):
         return interchange.text_json(self.text)
 
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}({self.text!r})'
+
 class Bold(Text):
     def subtree_json(self):
         return interchange.node_json(
@@ -231,6 +237,9 @@ class Link(Text):
         super().__init__(text, **kwargs)
         self._url = url
 
+    def __repr__(self) -> str:
+        return f'Link(text={self.text!r}, url={self.url!r})'
+
     def subtree_json(self):
         return interchange.node_json(
             'a',
@@ -255,6 +264,18 @@ class Button(Element):
             raise TypeError(text)
         self._text = text
         self.callback = callback
+
+    def __repr__(self) -> str:
+        return f'Button(text={self.text!r}, callback={self.callback!r})'
+
+    @property
+    def text(self) -> str:
+        return self._text
+    @text.setter
+    def text(self, text: str) -> None:
+        self._text = text
+        self.mark_dirty()
+
     def subtree_json(self):
         return interchange.node_json('button', {}, [interchange.text_json(self._text)])
     def handle_interaction(self, interaction):
@@ -273,6 +294,8 @@ class Button(Element):
         return f
 
 class LineBreak(Element):
+    def __repr__(self) -> str:
+        return f'LineBreak()'
     def subtree_json(self):
         return interchange.node_json('br', {}, [])
 
@@ -281,6 +304,8 @@ class TextField(Element):
         super().__init__(**kwargs)
         self._value = ''
         self._callback = callback
+    def __repr__(self) -> str:
+        return f'TextField(value={self.value!r}, callback={self._callback!r})'
     def subtree_json(self):
         return interchange.node_json('input', {'value': self._value}, [])
     def handle_interaction(self, interaction):
