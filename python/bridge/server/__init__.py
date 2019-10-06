@@ -79,23 +79,26 @@ def serve(
     token: Optional[str] = None
 ) -> None:
 
-    loop = loop if (loop is not None) else asyncio.get_event_loop()
-    port = port if (port is not None) else _get_open_port()
-    token = token if (token is not None) else _auth.generate_token()
+    loop_: asyncio.AbstractEventLoop = loop if (loop is not None) else asyncio.get_event_loop()
+    del loop
+    port_: int = port if (port is not None) else _get_open_port()
+    del port
+    token_: str = token if (token is not None) else _auth.generate_token()
+    del token
 
-    condition = asyncio.Condition(loop=loop)
+    condition = asyncio.Condition(loop=loop_)
 
     async def notify_all():
         async with condition:
             condition.notify_all()
-    gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop))
-    app = web.Application(loop=loop, middlewares=[_auth.build_middleware(token=token)])
-    app.add_routes(_auth.build_routes(token=token))
+    gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop_))
+    app = web.Application(loop=loop_, middlewares=[_auth.build_middleware(token=token_)])
+    app.add_routes(_auth.build_routes(token=token_))
     app.add_routes(build_routes(gui=gui, condition=condition))
-    url = f'http://localhost:{port}/auth/{token}'
+    url = f'http://localhost:{port_}/auth/{token_}'
     if open_browser:
         async def _open_browser(_):
             print('serving on:', url) # TODO: figure out a better way to yield this information; logging?
             webbrowser.open(url)
         app.on_startup.append(_open_browser)
-    web.run_app(app, host=host, port=port)
+    web.run_app(app, host=host, port=port_)

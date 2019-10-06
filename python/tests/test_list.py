@@ -1,7 +1,7 @@
 import contextlib
 from unittest.mock import patch
 
-from pytest import raises
+from pytest import raises  # type: ignore
 
 from bridge import Element, List, Text
 
