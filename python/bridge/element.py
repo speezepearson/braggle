@@ -81,7 +81,7 @@ class Element(ABC):
         pass
 
     @abstractmethod
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         pass
 
 class SequenceElement(Element, MutableSequence[Element]):
@@ -179,7 +179,7 @@ class List(SequenceElement):
         self._numbered = value
         self.mark_dirty()
 
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'ol' if self.numbered else 'ul',
             {},
@@ -188,7 +188,7 @@ class List(SequenceElement):
         )
 
 class Container(SequenceElement):
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json('div', {}, self.children)
 
 class Text(Element):
@@ -204,28 +204,28 @@ class Text(Element):
     def text(self, text: str) -> None:
         self._text = text
         self.mark_dirty()
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.text_json(self.text)
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.text!r})'
 
 class Bold(Text):
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'b',
             {},
             [interchange.text_json(self.text)],
         )
 class CodeSnippet(Text):
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'code',
             {'style': 'white-space:pre'},
             [interchange.text_json(self.text)],
         )
 class CodeBlock(Text):
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'pre',
             {},
@@ -240,7 +240,7 @@ class Link(Text):
     def __repr__(self) -> str:
         return f'Link(text={self.text!r}, url={self.url!r})'
 
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'a',
             {'href': self.url},
@@ -276,7 +276,7 @@ class Button(Element):
         self._text = text
         self.mark_dirty()
 
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json('button', {}, [interchange.text_json(self._text)])
     def handle_interaction(self, interaction):
         if interaction.type == 'click':
@@ -296,7 +296,7 @@ class Button(Element):
 class LineBreak(Element):
     def __repr__(self) -> str:
         return f'LineBreak()'
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json('br', {}, [])
 
 class TextField(Element):
@@ -306,7 +306,7 @@ class TextField(Element):
         self._callback = callback
     def __repr__(self) -> str:
         return f'TextField(value={self.value!r}, callback={self._callback!r})'
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json('input', {'value': self._value}, [])
     def handle_interaction(self, interaction):
         if interaction.type == 'input':

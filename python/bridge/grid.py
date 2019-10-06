@@ -1,4 +1,5 @@
-from typing import MutableSequence, Optional, Sequence
+from __future__ import annotations
+from typing import MutableSequence, Optional, Sequence, overload, Tuple, Type, TypeVar
 
 from .element import Element
 from . import interchange
@@ -23,22 +24,27 @@ class Grid(Element):
             >>> my_grid[1, 2] = None
             >>> del my_grid[3, 3]
     """
-    def __init__(self, cells=(), n_rows=None, n_columns=None, **kwargs):
+    def __init__(
+        self,
+        cells: Sequence[Sequence[Optional[Element]]] = (),
+        n_rows: Optional[int] = None,
+        n_columns: Optional[int] = None,
+        **kwargs
+    ):
         super().__init__(**kwargs)
 
         if not all(all(isinstance(x, Element) or x is None for x in row) for row in cells):
             raise TypeError('cell contents must be Elements')
-
-        if not (cells or (n_rows is not None and n_columns is not None)):
-            raise ValueError("can't guess dimensions for Grid")
 
         self._n_rows: int = 0
         self._n_columns: int = 0
         self._cells: MutableSequence[MutableSequence[Optional[Element]]] = []
         if cells:
             self.n_rows, self.n_columns = smallest_fitting_dimensions(cells)
-        else:
+        elif (n_rows is not None) and (n_columns is not None):
             self.n_rows, self.n_columns = n_rows, n_columns
+        else:
+            raise ValueError("can't guess dimensions for Grid")
 
         for (i, row) in enumerate(cells):
             for (j, cell) in enumerate(row):
@@ -49,7 +55,7 @@ class Grid(Element):
     def children(self) -> Sequence[Element]:
         return [cell for row in self._cells for cell in row if (cell is not None)]
 
-    def subtree_json(self):
+    def subtree_json(self) -> interchange.BridgeJson:
         return interchange.node_json(
             'table',
             {'style': 'border-spacing:0; border-collapse:collapse'},
@@ -106,6 +112,18 @@ class Grid(Element):
         self._n_columns = value
         self.mark_dirty()
 
+    @overload
+    def __getitem__(self, index: Tuple[int, int]) -> Optional[Element]:
+        pass
+    @overload
+    def __getitem__(self, index:  Tuple[int, slice]) -> Sequence[Optional[Element]]:
+        pass
+    @overload
+    def __getitem__(self, index:  Tuple[slice, int]) -> Sequence[Optional[Element]]:
+        pass
+    @overload
+    def __getitem__(self, index:  Tuple[slice, slice]) -> Sequence[Sequence[Optional[Element]]]:
+        pass
     def __getitem__(self, indices):
         (i, j) = indices
         if isinstance(i, slice):
@@ -114,7 +132,7 @@ class Grid(Element):
         else:
             return self._cells[i][j]
 
-    def __setitem__(self, indices, child):
+    def __setitem__(self, indices: Tuple[int, int], child: Optional[Element]) -> None:
         (i, j) = indices
         if isinstance(i, slice) or isinstance(j, slice):
             raise NotImplementedError("slice assignment to Grids not yet supported")
@@ -127,22 +145,24 @@ class Grid(Element):
         self._cells[i][j] = child
 
         self.mark_dirty()
-        child.mark_dirty(recursive=True)
+        if child is not None:
+            child.mark_dirty(recursive=True)
 
-    def __delitem__(self, indices):
+    def __delitem__(self, indices: Tuple[int, int]) -> None:
         (i, j) = indices
         if isinstance(i, slice) or isinstance(j, slice):
             raise NotImplementedError("slice deletion from Grids not yet supported")
 
         old_child = self._cells[i][j]
         self._cells[i][j] = None
-        old_child.tag.parentNode.removeChild(old_child.tag)
         self.mark_dirty()
 
     @classmethod
-    def make_column(cls, *elements, **kwargs):
+    def make_column(cls: Type[T], *elements: Element, **kwargs) -> T:
         return cls(cells=[[e] for e in elements], **kwargs)
 
     @classmethod
-    def make_row(cls, *elements, **kwargs):
+    def make_row(cls: Type[T], *elements: Element, **kwargs) -> T:
         return cls(cells=[elements], **kwargs)
+
+T = TypeVar('T', bound=Grid)
