@@ -19,10 +19,19 @@ class Grid(Element):
     A grid's number of rows and columns are given by `n_rows` and `n_columns`.
     Those properties may also be set, to change the number of rows and columns.
     Grids are indexable by pairs of non-negative integers, e.g.
-            >>> my_grid[0, 0]
-            >>> my_grid[3, 2] = Text('hi')
-            >>> my_grid[1, 2] = None
-            >>> del my_grid[3, 3]
+
+        >>> from bridge import *
+        >>> g = Grid([[Text(f'{row},{column}') for column in range(3)] for row in range(4)])
+        >>> g[0,0]
+        Text('0,0')
+        >>> g[3,2] = Text('new 3,2')
+        >>> g[3,0] = None
+        >>> del g[3, 1]
+        >>> import pprint; pprint.pprint(g[:,:])
+        [[Text('0,0'), Text('0,1'), Text('0,2')],
+         [Text('1,0'), Text('1,1'), Text('1,2')],
+         [Text('2,0'), Text('2,1'), Text('2,2')],
+         [None, None, Text('new 3,2')]]
     """
     def __init__(
         self,
@@ -71,6 +80,9 @@ class Grid(Element):
              )
              for row in self._cells],
         )
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(cells={self._cells!r})'
 
     @property
     def n_rows(self) -> int:

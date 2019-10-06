@@ -1,2 +1,7 @@
 from bridge import *
-serve(GUI(Text("Hello world!")))
+
+def main() -> None:
+    serve(GUI(Text("Hello world!")))
+
+if __name__ == '__main__':
+    main()

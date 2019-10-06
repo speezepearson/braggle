@@ -38,7 +38,7 @@ class Example:
         code = self.show_code if self.prep_code is None else f'{self.prep_code}\n\nserve(GUI({self.show_code}))'
         return [CodeBlock(code), element]
 
-def main():
+def main() -> None:
 
     examples = {}
 
