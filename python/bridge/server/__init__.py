@@ -69,22 +69,15 @@ def _get_open_port() -> int:
     s.close()
     return port
 
-def serve(
+def build_server_app(
     gui: AbstractGUI,
     *,
+    token: str,
     loop: Optional[asyncio.AbstractEventLoop] = None,
-    host: str = 'localhost',
-    port: Optional[int] = None,
-    open_browser: bool = True,
-    token: Optional[str] = None
-) -> None:
+) -> web.Application:
 
     loop_: asyncio.AbstractEventLoop = loop if (loop is not None) else asyncio.get_event_loop()
     del loop
-    port_: int = port if (port is not None) else _get_open_port()
-    del port
-    token_: str = token if (token is not None) else _auth.generate_token()
-    del token
 
     condition = asyncio.Condition(loop=loop_)
 
@@ -92,13 +85,45 @@ def serve(
         async with condition:
             condition.notify_all()
     gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop_))
-    app = web.Application(loop=loop_, middlewares=[_auth.build_middleware(token=token_)])
-    app.add_routes(_auth.build_routes(token=token_))
+    app = web.Application(loop=loop_, middlewares=[_auth.build_middleware(token=token)])
+    app.add_routes(_auth.build_routes(token=token))
     app.add_routes(build_routes(gui=gui, condition=condition))
-    url = f'http://localhost:{port_}/auth/{token_}'
+
+    return app
+
+import functools
+functools.wraps(build_server_app, assigned=['__annotations__'])
+async def serve_async(
+    *args,
+    host: str = 'localhost',
+    port: Optional[int] = None,
+    token: Optional[str] = None,
+    open_browser: bool = True,
+    **kwargs,
+) -> None:
+    token_: str = token if (token is not None) else _auth.generate_token()
+    del token
+    port_: int = port if (port is not None) else _get_open_port()
+    del port
+
+    app = build_server_app(*args, token=token_, **kwargs)
+
+    url = f'http://{host}:{port_}/auth/{token_}'
+    print('serving on:', url) # TODO: figure out a better way to yield this information; logging?
     if open_browser:
         async def _open_browser(_):
-            print('serving on:', url) # TODO: figure out a better way to yield this information; logging?
             webbrowser.open(url)
         app.on_startup.append(_open_browser)
-    web.run_app(app, host=host, port=port_)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, host, port_)
+    await site.start()
+    try:
+        await asyncio.sleep(1e10)
+    finally:
+        await runner.cleanup()
+
+functools.wraps(serve_async, assigned=['__annotations__'])
+def serve(*args, **kwargs) -> None:
+    asyncio.run(serve_async(*args, **kwargs))
