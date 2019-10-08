@@ -109,6 +109,8 @@ class SequenceElement(Element, MutableSequence[Element]):
         old_children = self._children
         for added_child in set(new_children) - set(old_children):
             added_child.parent = self
+            added_child.mark_dirty(recursive=True)
+            # TODO: ^ come up with semantics for "ensure this element is added to the tree"
 
         self._children = new_children
 
