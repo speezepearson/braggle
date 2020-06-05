@@ -9,100 +9,114 @@ import Json.Encode as E
 import Url
 import Url.Parser
 
+import Bridge
+import Protobuf.Decode
+import Protobuf.Encode
+
 type alias Id = String
-type Subtree = Ref Id | Text String | Node String (List (Attribute Msg)) (List Subtree)
-type alias Element =
-    { id : Id
-    , subtree : Subtree
-    }
 
-attributesDecoder : D.Decoder (List (Attribute Msg))
-attributesDecoder = D.dict D.string |> D.map (Dict.toList >> List.map (\(k, v) -> attribute k v))
+type alias Timestep = Int
 
-subtreeDecoder : D.Decoder Subtree
-subtreeDecoder =
-    D.oneOf
-        [ D.map Ref (D.field "ref" D.string)
-        , D.map Text (D.field "text" D.string)
-        , D.map3 Node
-            (D.field "name" D.string)
-            (D.field "attributes" attributesDecoder)
-            (D.field "children" (D.list (D.lazy (\_ -> subtreeDecoder))))
-        ]
-elementDecoder : D.Decoder Element
-elementDecoder =
-    D.map2 Element
-        (D.field "id" D.string)
-        (D.field "subtree" subtreeDecoder)
-pollDecoder: D.Decoder Msg
-pollDecoder =
-    D.map3 PollCompleted
-        (D.field "root" D.string)
-        (D.field "timeStep" D.int)
-        (D.field "elements" (D.dict elementDecoder))
-
-type alias TimeStep = Int
 type alias Model =
-    { elements : Dict.Dict Id Element
-    , timeStep : TimeStep
-    , root : Id
+    { serverState : { timestep: Timestep , root : Id , elements : Dict.Dict Id Element}
     }
 type Msg
     = Interacted Interaction
-    | PollCompleted Id TimeStep (Dict.Dict Id Element)
+    | PollCompleted Bridge.PartialServerState
     | PollFailed Http.Error
     | Ignore
 
-type Interaction = Clicked Id | Inputted Id String
+must : Maybe a -> a
+must mx =
+    case mx of
+        Just x -> x
+        Nothing -> Debug.todo "bad must call"
 
-poll : TimeStep -> Cmd Msg
+type Interaction = Clicked Id | TextInputted Id String
+interactionToProtobuf : Interaction -> Bridge.Interaction
+interactionToProtobuf interaction =
+    case interaction of
+        Clicked id -> Bridge.Interaction <| Just <| Bridge.InteractionKindClick {elementId = id}
+        TextInputted id value -> Bridge.Interaction <| Just <| Bridge.InteractionKindTextInput {elementId = id, value = value}
+
+type Element
+    = Ref Id
+    | Text String
+    | Tag {tagname : String, attributes : List (Attribute Msg), children : (List Element)}
+tagFromProtobuf : Bridge.Tag -> Element
+tagFromProtobuf tag =
+    let attributes = must tag.attributes in
+    Tag
+        { tagname = tag.tagname
+        , attributes = attributes.misc |> Dict.toList |> List.map (\(k, v) -> attribute k v)
+        , children = tag.children
+            |> (\x -> case x of Bridge.TagChildren childrenList -> childrenList)
+            |> List.map elementFromProtobuf
+        }
+elementFromProtobuf : Bridge.Element -> Element
+elementFromProtobuf {elementKind} =
+    case elementKind of
+        Bridge.ElementElementKind Nothing -> Text "invalid protobuf"
+        Bridge.ElementElementKind (Just (Bridge.ElementKindRef refId)) -> Ref refId
+        Bridge.ElementElementKind (Just (Bridge.ElementKindText text)) -> Text text
+        Bridge.ElementElementKind (Just (Bridge.ElementKindTag tag)) -> tagFromProtobuf tag
+
+poll : Timestep -> Cmd Msg
 poll ts =
     let
-        fromResult : Result Http.Error Msg -> Msg
+        fromResult : Result Http.Error Bridge.PollResponse -> Msg
         fromResult result = case result of
-            Ok msg -> msg
+            Ok {state} -> case state of
+                Just bareState -> PollCompleted bareState
+                Nothing -> Debug.todo "some kind of error"
             Err err -> PollFailed err
     in
         Http.post
             { url = "/poll"
-            , body = Http.jsonBody (E.int ts)
-            , expect = Http.expectJson fromResult pollDecoder
+            , body = Http.bytesBody "application/octet-stream"
+                <| Protobuf.Encode.encode
+                <| Bridge.toPollRequestEncoder {sinceTimestep = ts}
+            , expect = Protobuf.Decode.expectBytes fromResult Bridge.pollResponseDecoder
             }
 
 notify : Interaction -> Cmd Msg
 notify interaction =
-    let
-        payload : E.Value
-        payload = case interaction of
-            Clicked id -> E.object [("target", E.string id), ("type", E.string "click")]
-            Inputted id value -> E.object [("target", E.string id), ("type", E.string "input"), ("value", E.string value)]
-    in
-        Http.post
-            { url = "/interaction"
-            , body = Http.jsonBody payload
-            , expect = Http.expectWhatever (always Ignore)
-            }
+    Http.post
+        { url = "/interaction"
+        , body = Http.bytesBody "application/octet-stream"
+            <| Protobuf.Encode.encode
+            <| Bridge.toInteractionRequestEncoder
+                { interaction = Just <| interactionToProtobuf interaction
+                }
+        , expect = Http.expectWhatever (always Ignore)
+        }
 
 init : () -> Url.Url -> navkey -> (Model,  Cmd Msg)
 init _ _ _ =
-    ( { elements = Dict.singleton "root" {id="root", subtree=(Text "Loading...")}
-      , timeStep = -1
-      , root = "root"
+    ( { serverState =
+        { elements = Dict.singleton "root" (Text "Loading...")
+        , timestep = 0
+        , root = "root"
+        }
       }
-    , poll -1
+    , poll 0
     )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         Interacted interaction -> (model, notify interaction)
-        PollCompleted root timeStep elements ->
-            ( { model
-                | root = root
-                , elements = model.elements |> Dict.union elements
-                , timeStep = timeStep
-                }
-            , poll timeStep
+        PollCompleted {timestep, rootId, elements} ->
+            let
+                oldState = model.serverState
+            in
+            ( { model | serverState = { oldState
+                                        | root = rootId
+                                        , elements = oldState.elements |> Dict.union (Dict.map (\_ e -> elementFromProtobuf (must e)) elements)
+                                        , timestep = timestep
+                                        }
+              }
+            , poll timestep
             )
         PollFailed err -> Debug.todo (Debug.toString err)
         Ignore -> (model, Cmd.none)
@@ -111,27 +125,27 @@ view : Model -> Browser.Document Msg
 view model =
     { title="Bridge"
     , body=
-        [ case Dict.get model.root model.elements of
+        [ case Dict.get model.serverState.root model.serverState.elements of
             Nothing -> text "<NO ROOT?>"
-            Just {id, subtree} -> viewSubtree model.elements id subtree
+            Just element -> viewElement model.serverState.elements model.serverState.root element
         ]
     }
 
-viewSubtree : Dict.Dict Id Element -> Id -> Subtree -> Html Msg
-viewSubtree elements id subtree =
-    case subtree of
+viewElement : Dict.Dict Id Element -> Id -> Element -> Html Msg
+viewElement elements id element =
+    case element of
         Text s -> Html.text s
-        Node name attrs children ->
+        Tag {tagname, attributes, children} ->
             let
-                allAttrs = case name of
-                    "button" -> onClick (Interacted (Clicked id)) :: attrs
-                    "input" -> onInput (\val -> Interacted (Inputted id val)) :: attrs
-                    _ -> attrs
+                allAttributes = case tagname of
+                    "button" -> onClick (Interacted (Clicked id)) :: attributes
+                    "input" -> onInput (\val -> Interacted (TextInputted id val)) :: attributes
+                    _ -> attributes
             in
-                Html.node name allAttrs (List.map (viewSubtree elements id) children)
+                Html.node tagname allAttributes (List.map (viewElement elements id) children)
         Ref refId -> case Dict.get refId elements of
-            Nothing -> text "<NO ELEMENT?>"
-            Just referent -> viewSubtree elements refId referent.subtree
+            Nothing -> text <| "<no such element: " ++ refId ++ ">"
+            Just referent -> viewElement elements refId referent
 
 main = Browser.application
     { init=init

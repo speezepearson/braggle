@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import MutableSequence, Optional, Sequence, overload, Tuple, Type, TypeVar
 
 from .element import Element
+from .protobuf import element_pb2
 from . import interchange
 
 def empty_grid(n_rows, n_columns):
@@ -64,21 +65,24 @@ class Grid(Element):
     def children(self) -> Sequence[Element]:
         return [cell for row in self._cells for cell in row if (cell is not None)]
 
-    def subtree_json(self) -> interchange.BridgeJson:
-        return interchange.node_json(
+    def subtree_json(self) -> element_pb2.Element:
+        return interchange.tag(
             'table',
-            {'style': 'border-spacing:0; border-collapse:collapse'},
-            [interchange.node_json(
-                'tr',
-                {},
-                [interchange.node_json(
-                    'td',
-                    {'style': 'border: 1px solid black'},
-                    [cell] if (cell is not None) else [],
-                )
-                 for cell in row]
-             )
-             for row in self._cells],
+            attributes={'style': 'border-spacing:0; border-collapse:collapse'},
+            children=[
+                interchange.tag(
+                    'tr',
+                    children=[
+                        interchange.tag(
+                            'td',
+                            attributes={'style': 'border: 1px solid black'},
+                            children=[cell] if (cell is not None) else [],
+                        )
+                        for cell in row
+                    ]
+                 )
+                 for row in self._cells
+            ],
         )
 
     def __repr__(self) -> str:

@@ -10,8 +10,10 @@ from typing import Iterable, MutableSet, Optional, Sequence, Set, Tuple, TypeVar
 
 from aiohttp import web
 
+from ..element import Element
 from ..gui import AbstractGUI
-from ..interchange import Interaction, poll_response
+from ..protobuf import element_pb2
+from ..types import ElementId
 from . import _auth
 
 CLIENT_HTML = Path(__file__).absolute().parent.parent.parent.parent / 'elm-client' / 'index.html'
@@ -24,43 +26,60 @@ def _union(xss: Iterable[Iterable[_T]]) -> Set[_T]:
         result |= set(xs)
     return set(result)
 
-async def index(
-    request: web.Request,
-) -> web.FileResponse:
-    return web.FileResponse(CLIENT_HTML)
+class Server:
+    def __init__(self, gui: AbstractGUI, condition: asyncio.Condition):
+        self.gui = gui
+        self.condition = condition
 
-async def poll(
-    request: web.Request,
-    gui: AbstractGUI,
-    condition: asyncio.Condition,
-) -> web.Response:
-    since = await request.json()
-    async with condition:
-        await condition.wait_for(lambda: gui.time_step > since)
-        return web.json_response(gui.render_poll_response(since=since))
+    def build_routes(self) -> Sequence[web.RouteDef]:
+        return [
+            web.get('/', self.index),
+            web.post('/poll', self.poll),
+            web.post('/interaction', self.interaction),
+        ]
 
-async def interaction(
-    request: web.Request,
-    gui: AbstractGUI,
-    condition: asyncio.Condition,
-) -> web.Response:
-    j = await request.json()
-    async with condition:
-        for element in gui.root.walk():
-            if element.id == j['target']:
-                element.handle_interaction(Interaction(**j))
-                return web.Response(text='ok')
-        return web.Response(status=404)
+    async def index(self, request: web.BaseRequest) -> web.StreamResponse:
+        return web.FileResponse(CLIENT_HTML)
 
-def build_routes(
-    gui: AbstractGUI,
-    condition: asyncio.Condition,
-) -> Sequence[web.RouteDef]:
-    return [
-        web.RouteDef(method='GET', path=f'/', handler=index, kwargs={}),
-        web.RouteDef(method='POST', path=f'/poll', handler=functools.partial(poll, gui=gui, condition=condition), kwargs={}),
-        web.RouteDef(method='POST', path=f'/interaction', handler=functools.partial(interaction, gui=gui, condition=condition), kwargs={}),
-    ]
+    async def poll(self, request: web.BaseRequest) -> web.StreamResponse:
+        request_pb = element_pb2.PollRequest.FromString(await request.content.read())
+        since = request_pb.since_timestep
+        async with self.condition:
+            await self.condition.wait_for(lambda: self.gui.time_step > since)
+            return web.Response(
+                status=200,
+                content_type="application/octet_stream",
+                body=element_pb2.PollResponse(state=self.gui.updates_since(since)).SerializeToString(),
+            )
+
+    async def interaction(self, request: web.BaseRequest) -> web.StreamResponse:
+        bs = await request.content.read()
+        request_pb = element_pb2.InteractionRequest.FromString(bs)
+        interaction = request_pb.interaction
+        async with self.condition:
+            _dispatch_event_or_404(self.gui.root, interaction)
+
+        return web.Response(
+            status=200,
+            content_type="application/octet_stream",
+            body=element_pb2.InteractionResponse().SerializeToString(),
+        )
+
+def _dispatch_event_or_404(root: Element, interaction: element_pb2.Interaction) -> None:
+    if interaction.WhichOneof("interaction_kind") == "click":
+        click_event = interaction.click
+        _find_element_or_404(root, ElementId(click_event.element_id)).handle_click(click_event)
+    elif interaction.WhichOneof("interaction_kind") == "text_input":
+        text_input_event = interaction.text_input
+        _find_element_or_404(root, ElementId(text_input_event.element_id)).handle_text_input(text_input_event)
+    else:
+        raise ValueError("unknown kind of interaction", interaction.WhichOneof("interaction_kind"))
+
+def _find_element_or_404(root: Element, id: ElementId) -> Element:
+    result = next((e for e in root.walk() if e.id == id), None)
+    if result is None:
+        raise web.HTTPNotFound(body=id)
+    return result
 
 def _get_open_port() -> int:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -87,7 +106,7 @@ def build_server_app(
     gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop_))
     app = web.Application(loop=loop_, middlewares=[_auth.build_middleware(token=token)])
     app.add_routes(_auth.build_routes(token=token))
-    app.add_routes(build_routes(gui=gui, condition=condition))
+    app.add_routes(Server(gui, condition).build_routes())
 
     return app
 

@@ -6,9 +6,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Iterable, MutableSequence, MutableSet, Optional, Sequence, TYPE_CHECKING
 
-from .interchange import BridgeJson, PollResponse, poll_response
-
 from .element import Element, Container
+from .protobuf import element_pb2
 from .types import TimeStep
 
 class AbstractGUI(ABC):
@@ -27,7 +26,7 @@ class AbstractGUI(ABC):
         '''...'''
 
     @abstractmethod
-    def render_poll_response(self, since: int = 0) -> PollResponse:
+    def updates_since(self, since: int = 0) -> element_pb2.PartialServerState:
         '''...'''
 
     @abstractmethod
@@ -55,13 +54,13 @@ class GUI(AbstractGUI):
     def time_step(self) -> TimeStep:
         return TimeStep(len(self._dirty_elements))
 
-    def render_poll_response(self, since: int = 0) -> PollResponse:
+    def updates_since(self, since: int = 0) -> element_pb2.PartialServerState:
         since = max(since, 0)
         recently_dirtied = set(self._dirty_elements[since:])
-        return poll_response(
-            root=self.root,
-            time_step=self.time_step,
-            elements=recently_dirtied,
+        return element_pb2.PartialServerState(
+            root_id=self.root.id,
+            timestep=self.time_step,
+            elements={e.id: e.subtree_json() for e in recently_dirtied},
         )
 
     def add_listener(self, listener: Callable[[], None]) -> None:
