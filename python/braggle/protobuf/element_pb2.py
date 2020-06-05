@@ -17,10 +17,10 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='protobuf/element.proto',
-  package='bridge',
+  package='braggle',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x16protobuf/element.proto\x12\x06\x62ridge\"e\n\nAttributes\x12*\n\x04misc\x18\x01 \x03(\x0b\x32\x1c.bridge.Attributes.MiscEntry\x1a+\n\tMiscEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"a\n\x03Tag\x12\x0f\n\x07tagname\x18\x01 \x01(\t\x12&\n\nattributes\x18\x02 \x01(\x0b\x32\x12.bridge.Attributes\x12!\n\x08\x63hildren\x18\x03 \x03(\x0b\x32\x0f.bridge.Element\"T\n\x07\x45lement\x12\r\n\x03ref\x18\x01 \x01(\tH\x00\x12\x0e\n\x04text\x18\x02 \x01(\tH\x00\x12\x1a\n\x03tag\x18\x03 \x01(\x0b\x32\x0b.bridge.TagH\x00\x42\x0e\n\x0c\x65lement_kind\"\xb5\x01\n\x12PartialServerState\x12\x10\n\x08timestep\x18\x01 \x01(\x03\x12\x0f\n\x07root_id\x18\x02 \x01(\t\x12:\n\x08\x65lements\x18\x03 \x03(\x0b\x32(.bridge.PartialServerState.ElementsEntry\x1a@\n\rElementsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1e\n\x05value\x18\x02 \x01(\x0b\x32\x0f.bridge.Element:\x02\x38\x01\"%\n\x0bPollRequest\x12\x16\n\x0esince_timestep\x18\x01 \x01(\x03\"9\n\x0cPollResponse\x12)\n\x05state\x18\x01 \x01(\x0b\x32\x1a.bridge.PartialServerState\" \n\nClickEvent\x12\x12\n\nelement_id\x18\x01 \x01(\t\"3\n\x0eTextInputEvent\x12\x12\n\nelement_id\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"t\n\x0bInteraction\x12#\n\x05\x63lick\x18\x01 \x01(\x0b\x32\x12.bridge.ClickEventH\x00\x12,\n\ntext_input\x18\x02 \x01(\x0b\x32\x16.bridge.TextInputEventH\x00\x42\x12\n\x10interaction_kind\">\n\x12InteractionRequest\x12(\n\x0binteraction\x18\x01 \x01(\x0b\x32\x13.bridge.Interaction\"\x15\n\x13InteractionResponseb\x06proto3')
+  serialized_pb=_b('\n\x16protobuf/element.proto\x12\x07\x62raggle\"f\n\nAttributes\x12+\n\x04misc\x18\x01 \x03(\x0b\x32\x1d.braggle.Attributes.MiscEntry\x1a+\n\tMiscEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"c\n\x03Tag\x12\x0f\n\x07tagname\x18\x01 \x01(\t\x12\'\n\nattributes\x18\x02 \x01(\x0b\x32\x13.braggle.Attributes\x12\"\n\x08\x63hildren\x18\x03 \x03(\x0b\x32\x10.braggle.Element\"U\n\x07\x45lement\x12\r\n\x03ref\x18\x01 \x01(\tH\x00\x12\x0e\n\x04text\x18\x02 \x01(\tH\x00\x12\x1b\n\x03tag\x18\x03 \x01(\x0b\x32\x0c.braggle.TagH\x00\x42\x0e\n\x0c\x65lement_kind\"\xb7\x01\n\x12PartialServerState\x12\x10\n\x08timestep\x18\x01 \x01(\x03\x12\x0f\n\x07root_id\x18\x02 \x01(\t\x12;\n\x08\x65lements\x18\x03 \x03(\x0b\x32).braggle.PartialServerState.ElementsEntry\x1a\x41\n\rElementsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1f\n\x05value\x18\x02 \x01(\x0b\x32\x10.braggle.Element:\x02\x38\x01\"%\n\x0bPollRequest\x12\x16\n\x0esince_timestep\x18\x01 \x01(\x03\":\n\x0cPollResponse\x12*\n\x05state\x18\x01 \x01(\x0b\x32\x1b.braggle.PartialServerState\" \n\nClickEvent\x12\x12\n\nelement_id\x18\x01 \x01(\t\"3\n\x0eTextInputEvent\x12\x12\n\nelement_id\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"v\n\x0bInteraction\x12$\n\x05\x63lick\x18\x01 \x01(\x0b\x32\x13.braggle.ClickEventH\x00\x12-\n\ntext_input\x18\x02 \x01(\x0b\x32\x17.braggle.TextInputEventH\x00\x42\x12\n\x10interaction_kind\"?\n\x12InteractionRequest\x12)\n\x0binteraction\x18\x01 \x01(\x0b\x32\x14.braggle.Interaction\"\x15\n\x13InteractionResponseb\x06proto3')
 )
 
 
@@ -28,20 +28,20 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _ATTRIBUTES_MISCENTRY = _descriptor.Descriptor(
   name='MiscEntry',
-  full_name='bridge.Attributes.MiscEntry',
+  full_name='braggle.Attributes.MiscEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='bridge.Attributes.MiscEntry.key', index=0,
+      name='key', full_name='braggle.Attributes.MiscEntry.key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='bridge.Attributes.MiscEntry.value', index=1,
+      name='value', full_name='braggle.Attributes.MiscEntry.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -59,19 +59,19 @@ _ATTRIBUTES_MISCENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=92,
-  serialized_end=135,
+  serialized_start=94,
+  serialized_end=137,
 )
 
 _ATTRIBUTES = _descriptor.Descriptor(
   name='Attributes',
-  full_name='bridge.Attributes',
+  full_name='braggle.Attributes',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='misc', full_name='bridge.Attributes.misc', index=0,
+      name='misc', full_name='braggle.Attributes.misc', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -89,34 +89,34 @@ _ATTRIBUTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=34,
-  serialized_end=135,
+  serialized_start=35,
+  serialized_end=137,
 )
 
 
 _TAG = _descriptor.Descriptor(
   name='Tag',
-  full_name='bridge.Tag',
+  full_name='braggle.Tag',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='tagname', full_name='bridge.Tag.tagname', index=0,
+      name='tagname', full_name='braggle.Tag.tagname', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='attributes', full_name='bridge.Tag.attributes', index=1,
+      name='attributes', full_name='braggle.Tag.attributes', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='children', full_name='bridge.Tag.children', index=2,
+      name='children', full_name='braggle.Tag.children', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -134,34 +134,34 @@ _TAG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=137,
-  serialized_end=234,
+  serialized_start=139,
+  serialized_end=238,
 )
 
 
 _ELEMENT = _descriptor.Descriptor(
   name='Element',
-  full_name='bridge.Element',
+  full_name='braggle.Element',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ref', full_name='bridge.Element.ref', index=0,
+      name='ref', full_name='braggle.Element.ref', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='text', full_name='bridge.Element.text', index=1,
+      name='text', full_name='braggle.Element.text', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='tag', full_name='bridge.Element.tag', index=2,
+      name='tag', full_name='braggle.Element.tag', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -179,30 +179,30 @@ _ELEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='element_kind', full_name='bridge.Element.element_kind',
+      name='element_kind', full_name='braggle.Element.element_kind',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=236,
-  serialized_end=320,
+  serialized_start=240,
+  serialized_end=325,
 )
 
 
 _PARTIALSERVERSTATE_ELEMENTSENTRY = _descriptor.Descriptor(
   name='ElementsEntry',
-  full_name='bridge.PartialServerState.ElementsEntry',
+  full_name='braggle.PartialServerState.ElementsEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='bridge.PartialServerState.ElementsEntry.key', index=0,
+      name='key', full_name='braggle.PartialServerState.ElementsEntry.key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='bridge.PartialServerState.ElementsEntry.value', index=1,
+      name='value', full_name='braggle.PartialServerState.ElementsEntry.value', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -220,33 +220,33 @@ _PARTIALSERVERSTATE_ELEMENTSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=440,
-  serialized_end=504,
+  serialized_start=446,
+  serialized_end=511,
 )
 
 _PARTIALSERVERSTATE = _descriptor.Descriptor(
   name='PartialServerState',
-  full_name='bridge.PartialServerState',
+  full_name='braggle.PartialServerState',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='timestep', full_name='bridge.PartialServerState.timestep', index=0,
+      name='timestep', full_name='braggle.PartialServerState.timestep', index=0,
       number=1, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='root_id', full_name='bridge.PartialServerState.root_id', index=1,
+      name='root_id', full_name='braggle.PartialServerState.root_id', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='elements', full_name='bridge.PartialServerState.elements', index=2,
+      name='elements', full_name='braggle.PartialServerState.elements', index=2,
       number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -264,20 +264,20 @@ _PARTIALSERVERSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=323,
-  serialized_end=504,
+  serialized_start=328,
+  serialized_end=511,
 )
 
 
 _POLLREQUEST = _descriptor.Descriptor(
   name='PollRequest',
-  full_name='bridge.PollRequest',
+  full_name='braggle.PollRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='since_timestep', full_name='bridge.PollRequest.since_timestep', index=0,
+      name='since_timestep', full_name='braggle.PollRequest.since_timestep', index=0,
       number=1, type=3, cpp_type=2, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -295,20 +295,20 @@ _POLLREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=506,
-  serialized_end=543,
+  serialized_start=513,
+  serialized_end=550,
 )
 
 
 _POLLRESPONSE = _descriptor.Descriptor(
   name='PollResponse',
-  full_name='bridge.PollResponse',
+  full_name='braggle.PollResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='state', full_name='bridge.PollResponse.state', index=0,
+      name='state', full_name='braggle.PollResponse.state', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -326,20 +326,20 @@ _POLLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=545,
-  serialized_end=602,
+  serialized_start=552,
+  serialized_end=610,
 )
 
 
 _CLICKEVENT = _descriptor.Descriptor(
   name='ClickEvent',
-  full_name='bridge.ClickEvent',
+  full_name='braggle.ClickEvent',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='element_id', full_name='bridge.ClickEvent.element_id', index=0,
+      name='element_id', full_name='braggle.ClickEvent.element_id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -357,27 +357,27 @@ _CLICKEVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=604,
-  serialized_end=636,
+  serialized_start=612,
+  serialized_end=644,
 )
 
 
 _TEXTINPUTEVENT = _descriptor.Descriptor(
   name='TextInputEvent',
-  full_name='bridge.TextInputEvent',
+  full_name='braggle.TextInputEvent',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='element_id', full_name='bridge.TextInputEvent.element_id', index=0,
+      name='element_id', full_name='braggle.TextInputEvent.element_id', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='bridge.TextInputEvent.value', index=1,
+      name='value', full_name='braggle.TextInputEvent.value', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -395,27 +395,27 @@ _TEXTINPUTEVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=638,
-  serialized_end=689,
+  serialized_start=646,
+  serialized_end=697,
 )
 
 
 _INTERACTION = _descriptor.Descriptor(
   name='Interaction',
-  full_name='bridge.Interaction',
+  full_name='braggle.Interaction',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='click', full_name='bridge.Interaction.click', index=0,
+      name='click', full_name='braggle.Interaction.click', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='text_input', full_name='bridge.Interaction.text_input', index=1,
+      name='text_input', full_name='braggle.Interaction.text_input', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -433,23 +433,23 @@ _INTERACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='interaction_kind', full_name='bridge.Interaction.interaction_kind',
+      name='interaction_kind', full_name='braggle.Interaction.interaction_kind',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=691,
-  serialized_end=807,
+  serialized_start=699,
+  serialized_end=817,
 )
 
 
 _INTERACTIONREQUEST = _descriptor.Descriptor(
   name='InteractionRequest',
-  full_name='bridge.InteractionRequest',
+  full_name='braggle.InteractionRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='interaction', full_name='bridge.InteractionRequest.interaction', index=0,
+      name='interaction', full_name='braggle.InteractionRequest.interaction', index=0,
       number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -467,14 +467,14 @@ _INTERACTIONREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=809,
-  serialized_end=871,
+  serialized_start=819,
+  serialized_end=882,
 )
 
 
 _INTERACTIONRESPONSE = _descriptor.Descriptor(
   name='InteractionResponse',
-  full_name='bridge.InteractionResponse',
+  full_name='braggle.InteractionResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
@@ -491,8 +491,8 @@ _INTERACTIONRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=873,
-  serialized_end=894,
+  serialized_start=884,
+  serialized_end=905,
 )
 
 _ATTRIBUTES_MISCENTRY.containing_type = _ATTRIBUTES
@@ -540,12 +540,12 @@ Attributes = _reflection.GeneratedProtocolMessageType('Attributes', (_message.Me
   MiscEntry = _reflection.GeneratedProtocolMessageType('MiscEntry', (_message.Message,), dict(
     DESCRIPTOR = _ATTRIBUTES_MISCENTRY,
     __module__ = 'protobuf.element_pb2'
-    # @@protoc_insertion_point(class_scope:bridge.Attributes.MiscEntry)
+    # @@protoc_insertion_point(class_scope:braggle.Attributes.MiscEntry)
     ))
   ,
   DESCRIPTOR = _ATTRIBUTES,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.Attributes)
+  # @@protoc_insertion_point(class_scope:braggle.Attributes)
   ))
 _sym_db.RegisterMessage(Attributes)
 _sym_db.RegisterMessage(Attributes.MiscEntry)
@@ -553,14 +553,14 @@ _sym_db.RegisterMessage(Attributes.MiscEntry)
 Tag = _reflection.GeneratedProtocolMessageType('Tag', (_message.Message,), dict(
   DESCRIPTOR = _TAG,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.Tag)
+  # @@protoc_insertion_point(class_scope:braggle.Tag)
   ))
 _sym_db.RegisterMessage(Tag)
 
 Element = _reflection.GeneratedProtocolMessageType('Element', (_message.Message,), dict(
   DESCRIPTOR = _ELEMENT,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.Element)
+  # @@protoc_insertion_point(class_scope:braggle.Element)
   ))
 _sym_db.RegisterMessage(Element)
 
@@ -569,12 +569,12 @@ PartialServerState = _reflection.GeneratedProtocolMessageType('PartialServerStat
   ElementsEntry = _reflection.GeneratedProtocolMessageType('ElementsEntry', (_message.Message,), dict(
     DESCRIPTOR = _PARTIALSERVERSTATE_ELEMENTSENTRY,
     __module__ = 'protobuf.element_pb2'
-    # @@protoc_insertion_point(class_scope:bridge.PartialServerState.ElementsEntry)
+    # @@protoc_insertion_point(class_scope:braggle.PartialServerState.ElementsEntry)
     ))
   ,
   DESCRIPTOR = _PARTIALSERVERSTATE,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.PartialServerState)
+  # @@protoc_insertion_point(class_scope:braggle.PartialServerState)
   ))
 _sym_db.RegisterMessage(PartialServerState)
 _sym_db.RegisterMessage(PartialServerState.ElementsEntry)
@@ -582,49 +582,49 @@ _sym_db.RegisterMessage(PartialServerState.ElementsEntry)
 PollRequest = _reflection.GeneratedProtocolMessageType('PollRequest', (_message.Message,), dict(
   DESCRIPTOR = _POLLREQUEST,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.PollRequest)
+  # @@protoc_insertion_point(class_scope:braggle.PollRequest)
   ))
 _sym_db.RegisterMessage(PollRequest)
 
 PollResponse = _reflection.GeneratedProtocolMessageType('PollResponse', (_message.Message,), dict(
   DESCRIPTOR = _POLLRESPONSE,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.PollResponse)
+  # @@protoc_insertion_point(class_scope:braggle.PollResponse)
   ))
 _sym_db.RegisterMessage(PollResponse)
 
 ClickEvent = _reflection.GeneratedProtocolMessageType('ClickEvent', (_message.Message,), dict(
   DESCRIPTOR = _CLICKEVENT,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.ClickEvent)
+  # @@protoc_insertion_point(class_scope:braggle.ClickEvent)
   ))
 _sym_db.RegisterMessage(ClickEvent)
 
 TextInputEvent = _reflection.GeneratedProtocolMessageType('TextInputEvent', (_message.Message,), dict(
   DESCRIPTOR = _TEXTINPUTEVENT,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.TextInputEvent)
+  # @@protoc_insertion_point(class_scope:braggle.TextInputEvent)
   ))
 _sym_db.RegisterMessage(TextInputEvent)
 
 Interaction = _reflection.GeneratedProtocolMessageType('Interaction', (_message.Message,), dict(
   DESCRIPTOR = _INTERACTION,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.Interaction)
+  # @@protoc_insertion_point(class_scope:braggle.Interaction)
   ))
 _sym_db.RegisterMessage(Interaction)
 
 InteractionRequest = _reflection.GeneratedProtocolMessageType('InteractionRequest', (_message.Message,), dict(
   DESCRIPTOR = _INTERACTIONREQUEST,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.InteractionRequest)
+  # @@protoc_insertion_point(class_scope:braggle.InteractionRequest)
   ))
 _sym_db.RegisterMessage(InteractionRequest)
 
 InteractionResponse = _reflection.GeneratedProtocolMessageType('InteractionResponse', (_message.Message,), dict(
   DESCRIPTOR = _INTERACTIONRESPONSE,
   __module__ = 'protobuf.element_pb2'
-  # @@protoc_insertion_point(class_scope:bridge.InteractionResponse)
+  # @@protoc_insertion_point(class_scope:braggle.InteractionResponse)
   ))
 _sym_db.RegisterMessage(InteractionResponse)
 

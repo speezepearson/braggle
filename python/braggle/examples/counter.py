@@ -1,4 +1,4 @@
-from bridge import *
+from braggle import *
 
 def main() -> None:
     text = Text('0')
@@ -12,4 +12,5 @@ def main() -> None:
     ))
 
 if __name__ == '__main__':
+    print(open(__file__).read())
     main()

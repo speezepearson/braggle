@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from pytest import raises  # type: ignore
 
-from bridge import Element, List, Text
+from braggle import Element, List, Text
 
 
 def test_init_sets_parents():

@@ -4714,39 +4714,39 @@ var author$project$Main$Ignore = {$: 'Ignore'};
 var author$project$Main$Text = function (a) {
 	return {$: 'Text', a: a};
 };
-var author$project$Bridge$PollResponse = function (state) {
+var author$project$Braggle$PollResponse = function (state) {
 	return {state: state};
 };
-var author$project$Bridge$PartialServerState = F3(
+var author$project$Braggle$PartialServerState = F3(
 	function (timestep, rootId, elements) {
 		return {elements: elements, rootId: rootId, timestep: timestep};
 	});
-var author$project$Bridge$Element = function (elementKind) {
+var author$project$Braggle$Element = function (elementKind) {
 	return {elementKind: elementKind};
 };
-var author$project$Bridge$ElementElementKind = function (a) {
+var author$project$Braggle$ElementElementKind = function (a) {
 	return {$: 'ElementElementKind', a: a};
 };
-var author$project$Bridge$ElementKindRef = function (a) {
+var author$project$Braggle$ElementKindRef = function (a) {
 	return {$: 'ElementKindRef', a: a};
 };
-var author$project$Bridge$ElementKindTag = function (a) {
+var author$project$Braggle$ElementKindTag = function (a) {
 	return {$: 'ElementKindTag', a: a};
 };
-var author$project$Bridge$ElementKindText = function (a) {
+var author$project$Braggle$ElementKindText = function (a) {
 	return {$: 'ElementKindText', a: a};
 };
-var author$project$Bridge$Tag = F3(
+var author$project$Braggle$Tag = F3(
 	function (tagname, attributes, children) {
 		return {attributes: attributes, children: children, tagname: tagname};
 	});
-var author$project$Bridge$TagChildren = function (a) {
+var author$project$Braggle$TagChildren = function (a) {
 	return {$: 'TagChildren', a: a};
 };
-var author$project$Bridge$Attributes = function (misc) {
+var author$project$Braggle$Attributes = function (misc) {
 	return {misc: misc};
 };
-var author$project$Bridge$setMisc = F2(
+var author$project$Braggle$setMisc = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
@@ -6063,9 +6063,9 @@ var eriktim$elm_protocol_buffers$Protobuf$Decode$lengthDelimitedDecoder = functi
 		});
 };
 var eriktim$elm_protocol_buffers$Protobuf$Decode$string = eriktim$elm_protocol_buffers$Protobuf$Decode$lengthDelimitedDecoder(elm$bytes$Bytes$Decode$string);
-var author$project$Bridge$attributesDecoder = A2(
+var author$project$Braggle$attributesDecoder = A2(
 	eriktim$elm_protocol_buffers$Protobuf$Decode$message,
-	author$project$Bridge$Attributes(elm$core$Dict$empty),
+	author$project$Braggle$Attributes(elm$core$Dict$empty),
 	_List_fromArray(
 		[
 			A6(
@@ -6077,33 +6077,33 @@ var author$project$Bridge$attributesDecoder = A2(
 			function ($) {
 				return $.misc;
 			},
-			author$project$Bridge$setMisc)
+			author$project$Braggle$setMisc)
 		]));
-var author$project$Bridge$setAttributes = F2(
+var author$project$Braggle$setAttributes = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{attributes: value});
 	});
-var author$project$Bridge$setChildren = F2(
+var author$project$Braggle$setChildren = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{children: value});
 	});
-var author$project$Bridge$setElementKind = F2(
+var author$project$Braggle$setElementKind = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{elementKind: value});
 	});
-var author$project$Bridge$setTagname = F2(
+var author$project$Braggle$setTagname = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{tagname: value});
 	});
-var author$project$Bridge$unwrapTagChildren = function (_n0) {
+var author$project$Braggle$unwrapTagChildren = function (_n0) {
 	var value = _n0.a;
 	return value;
 };
@@ -6132,11 +6132,11 @@ var eriktim$elm_protocol_buffers$Protobuf$Decode$oneOf = F2(
 						A2(elm$core$Basics$composeL, set, elm$core$Maybe$Just))),
 				decoders));
 	});
-function author$project$Bridge$cyclic$elementDecoder() {
+function author$project$Braggle$cyclic$elementDecoder() {
 	return A2(
 		eriktim$elm_protocol_buffers$Protobuf$Decode$message,
-		author$project$Bridge$Element(
-			author$project$Bridge$ElementElementKind(elm$core$Maybe$Nothing)),
+		author$project$Braggle$Element(
+			author$project$Braggle$ElementElementKind(elm$core$Maybe$Nothing)),
 		_List_fromArray(
 			[
 				A2(
@@ -6147,13 +6147,13 @@ function author$project$Bridge$cyclic$elementDecoder() {
 						1,
 						eriktim$elm_protocol_buffers$Protobuf$Decode$lazy(
 							function (_n1) {
-								return A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, author$project$Bridge$ElementKindRef, eriktim$elm_protocol_buffers$Protobuf$Decode$string);
+								return A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, author$project$Braggle$ElementKindRef, eriktim$elm_protocol_buffers$Protobuf$Decode$string);
 							})),
 						_Utils_Tuple2(
 						2,
 						eriktim$elm_protocol_buffers$Protobuf$Decode$lazy(
 							function (_n2) {
-								return A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, author$project$Bridge$ElementKindText, eriktim$elm_protocol_buffers$Protobuf$Decode$string);
+								return A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, author$project$Braggle$ElementKindText, eriktim$elm_protocol_buffers$Protobuf$Decode$string);
 							})),
 						_Utils_Tuple2(
 						3,
@@ -6161,69 +6161,69 @@ function author$project$Bridge$cyclic$elementDecoder() {
 							function (_n3) {
 								return A2(
 									eriktim$elm_protocol_buffers$Protobuf$Decode$map,
-									author$project$Bridge$ElementKindTag,
-									author$project$Bridge$cyclic$tagDecoder());
+									author$project$Braggle$ElementKindTag,
+									author$project$Braggle$cyclic$tagDecoder());
 							}))
 					]),
-				A2(elm$core$Basics$composeL, author$project$Bridge$setElementKind, author$project$Bridge$ElementElementKind))
+				A2(elm$core$Basics$composeL, author$project$Braggle$setElementKind, author$project$Braggle$ElementElementKind))
 			]));
 }
-function author$project$Bridge$cyclic$tagDecoder() {
+function author$project$Braggle$cyclic$tagDecoder() {
 	return A2(
 		eriktim$elm_protocol_buffers$Protobuf$Decode$message,
 		A3(
-			author$project$Bridge$Tag,
+			author$project$Braggle$Tag,
 			'',
 			elm$core$Maybe$Nothing,
-			author$project$Bridge$TagChildren(_List_Nil)),
+			author$project$Braggle$TagChildren(_List_Nil)),
 		_List_fromArray(
 			[
-				A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 1, eriktim$elm_protocol_buffers$Protobuf$Decode$string, author$project$Bridge$setTagname),
+				A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 1, eriktim$elm_protocol_buffers$Protobuf$Decode$string, author$project$Braggle$setTagname),
 				A3(
 				eriktim$elm_protocol_buffers$Protobuf$Decode$optional,
 				2,
-				A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Bridge$attributesDecoder),
-				author$project$Bridge$setAttributes),
+				A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Braggle$attributesDecoder),
+				author$project$Braggle$setAttributes),
 				A4(
 				eriktim$elm_protocol_buffers$Protobuf$Decode$repeated,
 				3,
 				eriktim$elm_protocol_buffers$Protobuf$Decode$lazy(
 					function (_n0) {
-						return author$project$Bridge$cyclic$elementDecoder();
+						return author$project$Braggle$cyclic$elementDecoder();
 					}),
 				A2(
 					elm$core$Basics$composeL,
-					author$project$Bridge$unwrapTagChildren,
+					author$project$Braggle$unwrapTagChildren,
 					function ($) {
 						return $.children;
 					}),
-				A2(elm$core$Basics$composeL, author$project$Bridge$setChildren, author$project$Bridge$TagChildren))
+				A2(elm$core$Basics$composeL, author$project$Braggle$setChildren, author$project$Braggle$TagChildren))
 			]));
 }
 try {
-	var author$project$Bridge$elementDecoder = author$project$Bridge$cyclic$elementDecoder();
-	author$project$Bridge$cyclic$elementDecoder = function () {
-		return author$project$Bridge$elementDecoder;
+	var author$project$Braggle$elementDecoder = author$project$Braggle$cyclic$elementDecoder();
+	author$project$Braggle$cyclic$elementDecoder = function () {
+		return author$project$Braggle$elementDecoder;
 	};
-	var author$project$Bridge$tagDecoder = author$project$Bridge$cyclic$tagDecoder();
-	author$project$Bridge$cyclic$tagDecoder = function () {
-		return author$project$Bridge$tagDecoder;
+	var author$project$Braggle$tagDecoder = author$project$Braggle$cyclic$tagDecoder();
+	author$project$Braggle$cyclic$tagDecoder = function () {
+		return author$project$Braggle$tagDecoder;
 	};
 } catch ($) {
-throw 'Some top-level definitions from `Bridge` are causing infinite recursion:\n\n  ┌─────┐\n  │    elementDecoder\n  │     ↓\n  │    tagDecoder\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.0/halting-problem to learn how to fix it!';}
-var author$project$Bridge$setElements = F2(
+throw 'Some top-level definitions from `Braggle` are causing infinite recursion:\n\n  ┌─────┐\n  │    elementDecoder\n  │     ↓\n  │    tagDecoder\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.0/halting-problem to learn how to fix it!';}
+var author$project$Braggle$setElements = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{elements: value});
 	});
-var author$project$Bridge$setRootId = F2(
+var author$project$Braggle$setRootId = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{rootId: value});
 	});
-var author$project$Bridge$setTimestep = F2(
+var author$project$Braggle$setTimestep = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
@@ -6241,40 +6241,40 @@ var eriktim$elm_protocol_buffers$Protobuf$Decode$packedDecoder = F2(
 			});
 	});
 var eriktim$elm_protocol_buffers$Protobuf$Decode$int32 = A2(eriktim$elm_protocol_buffers$Protobuf$Decode$packedDecoder, eriktim$elm_protocol_buffers$Internal$Protobuf$VarInt, eriktim$elm_protocol_buffers$Protobuf$Decode$varIntDecoder);
-var author$project$Bridge$partialServerStateDecoder = A2(
+var author$project$Braggle$partialServerStateDecoder = A2(
 	eriktim$elm_protocol_buffers$Protobuf$Decode$message,
-	A3(author$project$Bridge$PartialServerState, 0, '', elm$core$Dict$empty),
+	A3(author$project$Braggle$PartialServerState, 0, '', elm$core$Dict$empty),
 	_List_fromArray(
 		[
-			A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 1, eriktim$elm_protocol_buffers$Protobuf$Decode$int32, author$project$Bridge$setTimestep),
-			A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 2, eriktim$elm_protocol_buffers$Protobuf$Decode$string, author$project$Bridge$setRootId),
+			A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 1, eriktim$elm_protocol_buffers$Protobuf$Decode$int32, author$project$Braggle$setTimestep),
+			A3(eriktim$elm_protocol_buffers$Protobuf$Decode$optional, 2, eriktim$elm_protocol_buffers$Protobuf$Decode$string, author$project$Braggle$setRootId),
 			A6(
 			eriktim$elm_protocol_buffers$Protobuf$Decode$mapped,
 			3,
 			_Utils_Tuple2('', elm$core$Maybe$Nothing),
 			eriktim$elm_protocol_buffers$Protobuf$Decode$string,
-			A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Bridge$elementDecoder),
+			A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Braggle$elementDecoder),
 			function ($) {
 				return $.elements;
 			},
-			author$project$Bridge$setElements)
+			author$project$Braggle$setElements)
 		]));
-var author$project$Bridge$setState = F2(
+var author$project$Braggle$setState = F2(
 	function (value, model) {
 		return _Utils_update(
 			model,
 			{state: value});
 	});
-var author$project$Bridge$pollResponseDecoder = A2(
+var author$project$Braggle$pollResponseDecoder = A2(
 	eriktim$elm_protocol_buffers$Protobuf$Decode$message,
-	author$project$Bridge$PollResponse(elm$core$Maybe$Nothing),
+	author$project$Braggle$PollResponse(elm$core$Maybe$Nothing),
 	_List_fromArray(
 		[
 			A3(
 			eriktim$elm_protocol_buffers$Protobuf$Decode$optional,
 			1,
-			A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Bridge$partialServerStateDecoder),
-			author$project$Bridge$setState)
+			A2(eriktim$elm_protocol_buffers$Protobuf$Decode$map, elm$core$Maybe$Just, author$project$Braggle$partialServerStateDecoder),
+			author$project$Braggle$setState)
 		]));
 var eriktim$elm_protocol_buffers$Protobuf$Encode$Encoder = F2(
 	function (a, b) {
@@ -6486,7 +6486,7 @@ var eriktim$elm_protocol_buffers$Protobuf$Encode$message = function (items) {
 				eriktim$elm_protocol_buffers$Protobuf$Encode$toKeyValuePairEncoder,
 				A2(elm$core$List$sortBy, elm$core$Tuple$first, items))));
 };
-var author$project$Bridge$toPollRequestEncoder = function (model) {
+var author$project$Braggle$toPollRequestEncoder = function (model) {
 	return eriktim$elm_protocol_buffers$Protobuf$Encode$message(
 		_List_fromArray(
 			[
@@ -7204,9 +7204,9 @@ var author$project$Main$poll = function (ts) {
 				elm$http$Http$bytesBody,
 				'application/octet-stream',
 				eriktim$elm_protocol_buffers$Protobuf$Encode$encode(
-					author$project$Bridge$toPollRequestEncoder(
+					author$project$Braggle$toPollRequestEncoder(
 						{sinceTimestep: ts}))),
-			expect: A2(eriktim$elm_protocol_buffers$Protobuf$Decode$expectBytes, fromResult, author$project$Bridge$pollResponseDecoder),
+			expect: A2(eriktim$elm_protocol_buffers$Protobuf$Decode$expectBytes, fromResult, author$project$Braggle$pollResponseDecoder),
 			url: '/poll'
 		});
 };
@@ -7332,7 +7332,7 @@ var eriktim$elm_protocol_buffers$Protobuf$Encode$string = function (v) {
 			width,
 			elm$bytes$Bytes$Encode$string(v)));
 };
-var author$project$Bridge$toClickEventEncoder = function (model) {
+var author$project$Braggle$toClickEventEncoder = function (model) {
 	return eriktim$elm_protocol_buffers$Protobuf$Encode$message(
 		_List_fromArray(
 			[
@@ -7341,7 +7341,7 @@ var author$project$Bridge$toClickEventEncoder = function (model) {
 				eriktim$elm_protocol_buffers$Protobuf$Encode$string(model.elementId))
 			]));
 };
-var author$project$Bridge$toTextInputEventEncoder = function (model) {
+var author$project$Braggle$toTextInputEventEncoder = function (model) {
 	return eriktim$elm_protocol_buffers$Protobuf$Encode$message(
 		_List_fromArray(
 			[
@@ -7353,17 +7353,17 @@ var author$project$Bridge$toTextInputEventEncoder = function (model) {
 				eriktim$elm_protocol_buffers$Protobuf$Encode$string(model.value))
 			]));
 };
-var author$project$Bridge$toInteractionKindEncoder = function (model) {
+var author$project$Braggle$toInteractionKindEncoder = function (model) {
 	if (model.$ === 'InteractionKindClick') {
 		var value = model.a;
 		return _Utils_Tuple2(
 			1,
-			author$project$Bridge$toClickEventEncoder(value));
+			author$project$Braggle$toClickEventEncoder(value));
 	} else {
 		var value = model.a;
 		return _Utils_Tuple2(
 			2,
-			author$project$Bridge$toTextInputEventEncoder(value));
+			author$project$Braggle$toTextInputEventEncoder(value));
 	}
 };
 var elm$core$Maybe$withDefault = F2(
@@ -7377,17 +7377,17 @@ var elm$core$Maybe$withDefault = F2(
 	});
 var eriktim$elm_protocol_buffers$Protobuf$Encode$NoEncoder = {$: 'NoEncoder'};
 var eriktim$elm_protocol_buffers$Protobuf$Encode$none = eriktim$elm_protocol_buffers$Protobuf$Encode$NoEncoder;
-var author$project$Bridge$toInteractionEncoder = function (model) {
+var author$project$Braggle$toInteractionEncoder = function (model) {
 	return eriktim$elm_protocol_buffers$Protobuf$Encode$message(
 		_List_fromArray(
 			[
 				A2(
 				elm$core$Maybe$withDefault,
 				_Utils_Tuple2(0, eriktim$elm_protocol_buffers$Protobuf$Encode$none),
-				A2(elm$core$Maybe$map, author$project$Bridge$toInteractionKindEncoder, model.interactionKind))
+				A2(elm$core$Maybe$map, author$project$Braggle$toInteractionKindEncoder, model.interactionKind))
 			]));
 };
-var author$project$Bridge$toInteractionRequestEncoder = function (model) {
+var author$project$Braggle$toInteractionRequestEncoder = function (model) {
 	return eriktim$elm_protocol_buffers$Protobuf$Encode$message(
 		_List_fromArray(
 			[
@@ -7396,31 +7396,31 @@ var author$project$Bridge$toInteractionRequestEncoder = function (model) {
 				A2(
 					elm$core$Basics$composeL,
 					elm$core$Maybe$withDefault(eriktim$elm_protocol_buffers$Protobuf$Encode$none),
-					elm$core$Maybe$map(author$project$Bridge$toInteractionEncoder))(model.interaction))
+					elm$core$Maybe$map(author$project$Braggle$toInteractionEncoder))(model.interaction))
 			]));
 };
-var author$project$Bridge$Interaction = function (interactionKind) {
+var author$project$Braggle$Interaction = function (interactionKind) {
 	return {interactionKind: interactionKind};
 };
-var author$project$Bridge$InteractionKindClick = function (a) {
+var author$project$Braggle$InteractionKindClick = function (a) {
 	return {$: 'InteractionKindClick', a: a};
 };
-var author$project$Bridge$InteractionKindTextInput = function (a) {
+var author$project$Braggle$InteractionKindTextInput = function (a) {
 	return {$: 'InteractionKindTextInput', a: a};
 };
 var author$project$Main$interactionToProtobuf = function (interaction) {
 	if (interaction.$ === 'Clicked') {
 		var id = interaction.a;
-		return author$project$Bridge$Interaction(
+		return author$project$Braggle$Interaction(
 			elm$core$Maybe$Just(
-				author$project$Bridge$InteractionKindClick(
+				author$project$Braggle$InteractionKindClick(
 					{elementId: id})));
 	} else {
 		var id = interaction.a;
 		var value = interaction.b;
-		return author$project$Bridge$Interaction(
+		return author$project$Braggle$Interaction(
 			elm$core$Maybe$Just(
-				author$project$Bridge$InteractionKindTextInput(
+				author$project$Braggle$InteractionKindTextInput(
 					{elementId: id, value: value})));
 	}
 };
@@ -7474,7 +7474,7 @@ var author$project$Main$notify = function (interaction) {
 				elm$http$Http$bytesBody,
 				'application/octet-stream',
 				eriktim$elm_protocol_buffers$Protobuf$Encode$encode(
-					author$project$Bridge$toInteractionRequestEncoder(
+					author$project$Braggle$toInteractionRequestEncoder(
 						{
 							interaction: elm$core$Maybe$Just(
 								author$project$Main$interactionToProtobuf(interaction))
@@ -7725,7 +7725,7 @@ var author$project$Main$view = function (model) {
 				}
 			}()
 			]),
-		title: 'Bridge'
+		title: 'Braggle'
 	};
 };
 var elm$browser$Browser$External = function (a) {

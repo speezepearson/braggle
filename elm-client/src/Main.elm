@@ -9,7 +9,7 @@ import Json.Encode as E
 import Url
 import Url.Parser
 
-import Bridge
+import Braggle
 import Protobuf.Decode
 import Protobuf.Encode
 
@@ -22,7 +22,7 @@ type alias Model =
     }
 type Msg
     = Interacted Interaction
-    | PollCompleted Bridge.PartialServerState
+    | PollCompleted Braggle.PartialServerState
     | PollFailed Http.Error
     | Ignore
 
@@ -33,38 +33,38 @@ must mx =
         Nothing -> Debug.todo "bad must call"
 
 type Interaction = Clicked Id | TextInputted Id String
-interactionToProtobuf : Interaction -> Bridge.Interaction
+interactionToProtobuf : Interaction -> Braggle.Interaction
 interactionToProtobuf interaction =
     case interaction of
-        Clicked id -> Bridge.Interaction <| Just <| Bridge.InteractionKindClick {elementId = id}
-        TextInputted id value -> Bridge.Interaction <| Just <| Bridge.InteractionKindTextInput {elementId = id, value = value}
+        Clicked id -> Braggle.Interaction <| Just <| Braggle.InteractionKindClick {elementId = id}
+        TextInputted id value -> Braggle.Interaction <| Just <| Braggle.InteractionKindTextInput {elementId = id, value = value}
 
 type Element
     = Ref Id
     | Text String
     | Tag {tagname : String, attributes : List (Attribute Msg), children : (List Element)}
-tagFromProtobuf : Bridge.Tag -> Element
+tagFromProtobuf : Braggle.Tag -> Element
 tagFromProtobuf tag =
     let attributes = must tag.attributes in
     Tag
         { tagname = tag.tagname
         , attributes = attributes.misc |> Dict.toList |> List.map (\(k, v) -> attribute k v)
         , children = tag.children
-            |> (\x -> case x of Bridge.TagChildren childrenList -> childrenList)
+            |> (\x -> case x of Braggle.TagChildren childrenList -> childrenList)
             |> List.map elementFromProtobuf
         }
-elementFromProtobuf : Bridge.Element -> Element
+elementFromProtobuf : Braggle.Element -> Element
 elementFromProtobuf {elementKind} =
     case elementKind of
-        Bridge.ElementElementKind Nothing -> Text "invalid protobuf"
-        Bridge.ElementElementKind (Just (Bridge.ElementKindRef refId)) -> Ref refId
-        Bridge.ElementElementKind (Just (Bridge.ElementKindText text)) -> Text text
-        Bridge.ElementElementKind (Just (Bridge.ElementKindTag tag)) -> tagFromProtobuf tag
+        Braggle.ElementElementKind Nothing -> Text "invalid protobuf"
+        Braggle.ElementElementKind (Just (Braggle.ElementKindRef refId)) -> Ref refId
+        Braggle.ElementElementKind (Just (Braggle.ElementKindText text)) -> Text text
+        Braggle.ElementElementKind (Just (Braggle.ElementKindTag tag)) -> tagFromProtobuf tag
 
 poll : Timestep -> Cmd Msg
 poll ts =
     let
-        fromResult : Result Http.Error Bridge.PollResponse -> Msg
+        fromResult : Result Http.Error Braggle.PollResponse -> Msg
         fromResult result = case result of
             Ok {state} -> case state of
                 Just bareState -> PollCompleted bareState
@@ -75,8 +75,8 @@ poll ts =
             { url = "/poll"
             , body = Http.bytesBody "application/octet-stream"
                 <| Protobuf.Encode.encode
-                <| Bridge.toPollRequestEncoder {sinceTimestep = ts}
-            , expect = Protobuf.Decode.expectBytes fromResult Bridge.pollResponseDecoder
+                <| Braggle.toPollRequestEncoder {sinceTimestep = ts}
+            , expect = Protobuf.Decode.expectBytes fromResult Braggle.pollResponseDecoder
             }
 
 notify : Interaction -> Cmd Msg
@@ -85,7 +85,7 @@ notify interaction =
         { url = "/interaction"
         , body = Http.bytesBody "application/octet-stream"
             <| Protobuf.Encode.encode
-            <| Bridge.toInteractionRequestEncoder
+            <| Braggle.toInteractionRequestEncoder
                 { interaction = Just <| interactionToProtobuf interaction
                 }
         , expect = Http.expectWhatever (always Ignore)
@@ -123,7 +123,7 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title="Bridge"
+    { title="Braggle"
     , body=
         [ case Dict.get model.serverState.root model.serverState.elements of
             Nothing -> text "<NO ROOT?>"

@@ -1,7 +1,7 @@
 from pytest import raises # type: ignore
 
-from bridge import Button
-from bridge.protobuf import element_pb2
+from braggle import Button
+from braggle.protobuf import element_pb2
 
 def test_construction():
     Button("Press me")

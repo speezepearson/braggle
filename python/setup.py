@@ -11,7 +11,7 @@ here = path.abspath(path.dirname(__file__))
 #     long_description = f.read()
 
 setup(
-    name='browsergui2',
+    name='braggle',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -22,11 +22,11 @@ setup(
     # long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/speezepearson/browsergui2',
+    url='https://github.com/speezepearson/braggle',
 
     # Author details
     author='speezepearson',
-    author_email='speeze.pearson+browsergui2@gmail.com',
+    author_email='speeze.pearson+braggle@gmail.com',
 
     # Choose your license
     # license='MIT',

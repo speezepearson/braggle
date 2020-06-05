@@ -21,7 +21,7 @@ class Grid(Element):
     Those properties may also be set, to change the number of rows and columns.
     Grids are indexable by pairs of non-negative integers, e.g.
 
-        >>> from bridge import *
+        >>> from braggle import *
         >>> g = Grid([[Text(f'{row},{column}') for column in range(3)] for row in range(4)])
         >>> g[0,0]
         Text('0,0')

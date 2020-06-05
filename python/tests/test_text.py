@@ -1,6 +1,6 @@
 from pytest import raises # type: ignore
 
-from bridge import Link, Text
+from braggle import Link, Text
 
 from . import assert_marks_dirty
 

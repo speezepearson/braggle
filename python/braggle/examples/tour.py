@@ -3,7 +3,7 @@ import os
 import re
 from typing import Optional
 
-from bridge import *
+from braggle import *
 
 def n_leading_spaces(s):
     return len(re.match('^ *', s).group())

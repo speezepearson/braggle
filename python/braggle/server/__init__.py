@@ -98,13 +98,16 @@ def build_server_app(
 
     if loop is None:
         loop = asyncio.get_event_loop()
+        if loop is None:
+            raise RuntimeError("can't get my hands on an event loop")
+    _mandatory_loop = loop  # mypy hack to make it realize this variable is effectively final
 
     condition = asyncio.Condition(loop=loop)
 
     async def notify_all():
         async with condition:
             condition.notify_all()
-    gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), loop))
+    gui.add_listener(lambda: asyncio.run_coroutine_threadsafe(notify_all(), _mandatory_loop))
     app = web.Application(loop=loop, middlewares=[_auth.build_middleware(token=token)])
     app.add_routes(_auth.build_routes(token=token))
     app.add_routes(Server(gui, condition).build_routes())
