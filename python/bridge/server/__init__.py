@@ -17,7 +17,7 @@ from ..protobuf import element_pb2
 from ..types import ElementId
 from . import _auth
 
-CLIENT_HTML = Path(__file__).absolute().parent.parent.parent.parent / 'elm-client' / 'index.html'
+CLIENT_HTML = (Path(__file__).parent / 'static' / 'index.html').resolve()
 assert CLIENT_HTML.is_file()
 
 _T = TypeVar('_T')
