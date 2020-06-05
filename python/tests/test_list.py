@@ -11,6 +11,9 @@ def test_construction():
     List(numbered=True)
     List(numbered=False)
 
+def test_constructor_accepts_generator():
+    assert len(List(Text("") for _ in range(10))) == 10
+
 def test_children():
     first = List()
     second = List()

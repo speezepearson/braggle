@@ -20,10 +20,10 @@ def _count():
 
 class Element(ABC):
     __nonces = _count()
-    def __init__(self, parent: Optional[Element] = None) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self._id = ElementId(str(next(self.__nonces)))
-        self._parent = parent
+        self._parent: Optional[Element] = None
         self._gui: Optional[AbstractGUI] = None
 
     @property
@@ -88,10 +88,11 @@ class Element(ABC):
         pass
 
 class SequenceElement(Element, MutableSequence[Element]):
-    def __init__(self, children: Sequence[Element] = (), **kwargs) -> None:
+    def __init__(self, children: Iterable[Element] = ()) -> None:
+        children = list(children)
         if not all(isinstance(child, Element) for child in children):
-            raise TypeError("List children must be Elements")
-        super().__init__(**kwargs)
+            raise TypeError("SequencElement children must be Elements")
+        super().__init__()
         self._children: MutableSequence[Element] = []
         self[:] = children
 
@@ -170,8 +171,8 @@ class List(SequenceElement):
         my_list[1] = new_second
         del my_list[2]
     """
-    def __init__(self, children: Sequence[Element] = (), numbered: bool = False, **kwargs) -> None:
-        super().__init__(children=children, **kwargs)
+    def __init__(self, children: Iterable[Element] = (), numbered: bool = False) -> None:
+        super().__init__(children=children)
         self._numbered = numbered
 
     def __repr__(self) -> str:
@@ -199,8 +200,8 @@ class Container(SequenceElement):
         return protobuf_helpers.tag('div', children=self.children)
 
 class Text(Element):
-    def __init__(self, text: str, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, text: str) -> None:
+        super().__init__()
         if not isinstance(text, str):
             raise TypeError(text)
         self._text = text
@@ -235,8 +236,8 @@ class CodeBlock(Text):
         )
 class Link(Text):
     """A `hyperlink <http://github.com/speezepearson/browsergui>`_."""
-    def __init__(self, *, text: str, url: str, **kwargs):
-        super().__init__(text, **kwargs)
+    def __init__(self, *, text: str, url: str):
+        super().__init__(text)
         self._url = url
 
     def __repr__(self) -> str:
@@ -260,8 +261,8 @@ class Link(Text):
 
 
 class Button(Element):
-    def __init__(self, text: str, callback: Optional[Callable[[], None]] = None, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, text: str, callback: Optional[Callable[[], None]] = None) -> None:
+        super().__init__()
         if not isinstance(text, str):
             raise TypeError(text)
         self._text = text
@@ -301,8 +302,8 @@ class LineBreak(Element):
         return protobuf_helpers.tag('br')
 
 class TextField(Element):
-    def __init__(self, callback: Optional[Callable[[str], None]] = None, **kwargs) -> None:
-        super().__init__(**kwargs)
+    def __init__(self, callback: Optional[Callable[[str], None]] = None) -> None:
+        super().__init__()
         self._value = ''
         self._callback = callback
     def __repr__(self) -> str:

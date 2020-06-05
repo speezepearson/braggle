@@ -39,9 +39,8 @@ class Grid(Element):
         cells: Sequence[Sequence[Optional[Element]]] = (),
         n_rows: Optional[int] = None,
         n_columns: Optional[int] = None,
-        **kwargs
     ):
-        super().__init__(**kwargs)
+        super().__init__()
 
         if not all(all(isinstance(x, Element) or x is None for x in row) for row in cells):
             raise TypeError('cell contents must be Elements')
