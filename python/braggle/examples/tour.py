@@ -1,5 +1,6 @@
 import dataclasses
 import os
+from pathlib import Path
 import re
 from typing import Optional
 
@@ -65,7 +66,7 @@ def main() -> None:
     #         [Text("00"), Text("01")],
     #         [Text("10"), Text("11")]])'''))
 
-    # examples[Image] = Example("Image(os.path.join(os.path.dirname(__file__), 'tour-image.png'))")
+    examples[Image] = Example("Image('https://www.iana.org/_img/2013.1/iana-logo-header.svg')")
 
     examples[Button] = Example(
         'Container([click_count, button])',
@@ -185,7 +186,7 @@ def main() -> None:
                 example_grid_for_types(Container, List)]),
             Container([
                 Text('Other:'),
-                example_grid_for_types()])])
+                example_grid_for_types(Image)])])
     ))
 
 if __name__ == '__main__':
