@@ -109,6 +109,9 @@ class SequenceElement(Element, MutableSequence[Element]):
         return self.children[index]
 
     def __update_children(self, new_children: MutableSequence[Element]) -> None:
+        for child in new_children:
+            if not isinstance(child, Element):
+                raise TypeError(f"SequenceElement children must be Elements, not {type(child)}")
         old_children = self._children
         for added_child in set(new_children) - set(old_children):
             added_child.parent = self
@@ -149,12 +152,9 @@ class SequenceElement(Element, MutableSequence[Element]):
         return len(self.children)
 
     def insert(self, index: int, child: Element) -> None:
-        if not isinstance(child, Element):
-            raise TypeError("SequenceElement children must be Elements")
-        child.parent = self
-        self._children.insert(index, child)
-        child.mark_dirty(recursive=True)
-        self.mark_dirty()
+        new_children = list(self._children)
+        new_children.insert(index, child)
+        self.__update_children(new_children)
 
 class List(SequenceElement):
     """A list of elements.
