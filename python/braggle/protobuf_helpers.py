@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from .protobuf import element_pb2
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, NewType, Optional, Sequence, TYPE_CHECKING, Union
-from typing_extensions import TypedDict
+from typing import Mapping, Sequence, Union
 
 from . import element
 from .types import ElementId, TimeStep
