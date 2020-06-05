@@ -1,4 +1,4 @@
-import pytest
+import pytest  # type: ignore
 from braggle import Grid, Text
 from braggle.protobuf import element_pb2
 from . import assert_marks_dirty

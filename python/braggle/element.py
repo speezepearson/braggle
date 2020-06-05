@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, Set, TypeVar, TYPE_CHECKING
+from typing import AbstractSet, Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, Set, TypeVar, TYPE_CHECKING
 
 from . import protobuf_helpers
 from .protobuf import element_pb2
@@ -52,12 +52,12 @@ class Element(ABC):
             parent.__children.add(self)
 
     @property
-    def children(self) -> Sequence[Element]:
+    def children(self) -> AbstractSet[Element]:
         '''...
 
         ``x.parent == y`` must be equivalent to ``x in y.children``.
         '''
-        return tuple(self.__children)
+        return set(self.__children)
 
     def walk(self) -> Iterator[Element]:
         yield self
