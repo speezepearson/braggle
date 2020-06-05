@@ -60,10 +60,6 @@ class Grid(Element):
                 if cell is not None:
                     self[i,j] = cell
 
-    @property
-    def children(self) -> Sequence[Element]:
-        return [cell for row in self._cells for cell in row if (cell is not None)]
-
     def to_protobuf(self) -> element_pb2.Element:
         return protobuf_helpers.tag(
             'table',
@@ -170,6 +166,7 @@ class Grid(Element):
 
         old_child = self._cells[i][j]
         self._cells[i][j] = None
+        old_child.parent = None
         self.mark_dirty()
 
     @classmethod

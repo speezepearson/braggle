@@ -10,10 +10,6 @@ class Details(Element):
         self._contents = contents; contents.parent = self
 
     @property
-    def children(self) -> typing.Sequence[Element]:
-        return (self.summary, self.contents)
-
-    @property
     def summary(self) -> Element:
         return self._summary
     @summary.setter

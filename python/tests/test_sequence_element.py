@@ -9,7 +9,7 @@ from braggle import Element, List, Text
 def test_init_sets_parents():
     child = Text("hi")
     parent = List([child])
-    assert list(parent.children) == [child]
+    assert list(parent) == [child]
     assert child.parent == parent
 
 
@@ -35,7 +35,7 @@ def test_setitem():
     new = Text("new")
     parent = List([old])
     parent[0] = new
-    assert list(parent.children) == [new]
+    assert list(parent) == [new]
     assert old.parent is None
     assert new.parent is parent
 
@@ -53,7 +53,7 @@ def test_setitem_slice():
     new = Text("new")
     parent = List([cont1, old1, old2, cont2])
     parent[1:3] = [new]
-    assert list(parent.children) == [cont1, new, cont2]
+    assert list(parent) == [cont1, new, cont2]
     assert old1.parent is old2.parent is None
     assert new.parent is parent
     assert cont1.parent is cont2.parent is parent
@@ -64,7 +64,7 @@ def test_delitem():
     cont = Text("cont")
     parent = List([old, cont])
     del parent[0]
-    assert list(parent.children) == [cont]
+    assert list(parent) == [cont]
     assert old.parent is None
     assert cont.parent is parent
 
@@ -77,6 +77,6 @@ def test_delitem_slice():
     new = Text("new")
     parent = List([cont1, old1, old2, cont2])
     del parent[1:3]
-    assert list(parent.children) == [cont1, cont2]
+    assert list(parent) == [cont1, cont2]
     assert old1.parent is old2.parent is None
     assert cont1.parent is cont2.parent is parent

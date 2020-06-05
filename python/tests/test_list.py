@@ -4,6 +4,7 @@ from unittest.mock import patch
 from pytest import raises  # type: ignore
 
 from braggle import Element, List, Text
+from . import assert_marks_dirty
 
 def test_construction():
     List()
@@ -14,11 +15,10 @@ def test_construction():
 def test_constructor_accepts_generator():
     assert len(List(Text("") for _ in range(10))) == 10
 
-def test_children():
-    first = List()
-    second = List()
-    top = List(children=(first, second))
-    assert list(top.children) == [first, second]
+def test_conversion_to_list():
+    children = [Text(str(i)) for i in range(10)]
+    top = List(list(children))
+    assert list(top) == children
 
 def test_getitem():
     first = Text('1')
@@ -37,7 +37,7 @@ def test_delitem_intindex():
 
     del top[0]
     assert first.parent is None
-    assert list(top.children) == [second]
+    assert list(top) == [second]
     assert second == top[0]
     with raises(IndexError):
         top[1]
@@ -50,16 +50,9 @@ def test_delitem_sliceindex():
     assert all(t.parent is None for t in numbers[2:7:2])
     assert [t.text for t in l] == list('1246890')
 
-@contextlib.contextmanager
-def assertMarksDirty(element: Element):
-    old_mark_dirty = element.mark_dirty
-    with patch.object(element, 'mark_dirty', wraps=old_mark_dirty) as mock:
-        yield
-        assert mock.call_count > 0
-
 def test_delitem__marks_dirty():
     l = List([Text('a')])
-    with assertMarksDirty(l):
+    with assert_marks_dirty(l):
         del l[0]
 
 def test_setitem_intindex():
@@ -72,7 +65,7 @@ def test_setitem_intindex():
     assert top[0] == new
     assert first.parent is None
     assert top == new.parent
-    assert list(top.children) == [new, second]
+    assert list(top) == [new, second]
 
 def test_setitem_sliceindex():
     numbers = [Text(c) for c in '1234567890']
@@ -85,7 +78,7 @@ def test_setitem_sliceindex():
 
 def test_setitem__marks_dirty():
     l = List([Text('a')])
-    with assertMarksDirty(l):
+    with assert_marks_dirty(l):
         l[0] = Text('b')
 
 def test_insert():
@@ -97,27 +90,27 @@ def test_insert():
 
     top.insert(0, second)
     assert top == second.parent
-    assert list(top.children) == [second]
+    assert list(top) == [second]
 
     top.insert(0, first)
-    assert list(top.children) == [first, second]
+    assert list(top) == [first, second]
 
     top.insert(99, fourth)
-    assert list(top.children) == [first, second, fourth]
+    assert list(top) == [first, second, fourth]
 
     top.insert(-1, third)
-    assert list(top.children) == [first, second, third, fourth]
+    assert list(top) == [first, second, third, fourth]
 
 def test_insert__marks_dirty():
     l = List()
-    with assertMarksDirty(l):
+    with assert_marks_dirty(l):
         l.append(Text('a'))
 
 def test_insert__marks_descendants_dirty():
     grandchild = Text('a'); print(id(grandchild))
     child = List([grandchild]); print(id(child))
     l = List(); print(id(l))
-    with assertMarksDirty(child), assertMarksDirty(grandchild):
+    with assert_marks_dirty(child), assert_marks_dirty(grandchild):
         l.append(child)
 
 def test_children_must_be_elements():
@@ -126,9 +119,9 @@ def test_children_must_be_elements():
 
 def test_set_numbered__marks_dirty():
     l = List(numbered=True)
-    with assertMarksDirty(l):
+    with assert_marks_dirty(l):
         l.numbered = False
-    with assertMarksDirty(l):
+    with assert_marks_dirty(l):
         l.numbered = True
 
 def test_to_protobuf():

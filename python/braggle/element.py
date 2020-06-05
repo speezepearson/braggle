@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod, abstractproperty
-from typing import Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, TypeVar, TYPE_CHECKING
+from typing import Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, Set, TypeVar, TYPE_CHECKING
 
 from . import protobuf_helpers
 from .protobuf import element_pb2
@@ -23,7 +23,8 @@ class Element(ABC):
     def __init__(self) -> None:
         super().__init__()
         self._id = ElementId(str(next(self.__nonces)))
-        self._parent: Optional[Element] = None
+        self.__parent: Optional[Element] = None
+        self.__children: Set[Element] = set()
         self._gui: Optional[AbstractGUI] = None
 
     @property
@@ -37,12 +38,16 @@ class Element(ABC):
         - ``x.parent == y`` must be equivalent to ``x in y.children``.
         - Consequently, you probably never want to set an Element's parent, unless you're writing your own Element class and implementing a method that adds a child. For example, ``my_list_element.append(e)`` will set ``e.parent``; end users should never have to worry about it.
         '''
-        return self._parent
+        return self.__parent
     @parent.setter
     def parent(self, parent: Element) -> None:
-        if (self._parent is not None) and (parent is not None):
+        if (self.__parent is not None) and (parent is not None):
             raise RuntimeError('cannot set parent of Element that already has a parent')
-        self._parent = parent
+        if self.__parent is not None:
+            self.__parent.__children.remove(self)
+        self.__parent = parent
+        if parent is not None:
+            parent.__children.add(self)
 
     @property
     def children(self) -> Sequence[Element]:
@@ -50,11 +55,11 @@ class Element(ABC):
 
         ``x.parent == y`` must be equivalent to ``x in y.children``.
         '''
-        return ()
+        return tuple(self.__children)
 
     def walk(self) -> Iterator[Element]:
         yield self
-        for child in self.children:
+        for child in self.__children:
             yield from child.walk()
 
     @property
@@ -96,10 +101,6 @@ class SequenceElement(Element, MutableSequence[Element]):
         self._children: MutableSequence[Element] = []
         self[:] = children
 
-    @property
-    def children(self) -> Sequence[Element]:
-        return tuple(self._children)
-
     @overload
     def __getitem__(self, index: int) -> Element:
         pass
@@ -107,7 +108,7 @@ class SequenceElement(Element, MutableSequence[Element]):
     def __getitem__(self, index: slice) -> MutableSequence[Element]:
         pass
     def __getitem__(self, index):
-        return self.children[index]
+        return self._children[index]
 
     def __update_children(self, new_children: MutableSequence[Element]) -> None:
         for child in new_children:
@@ -150,7 +151,7 @@ class SequenceElement(Element, MutableSequence[Element]):
         self.__update_children(new_children)
 
     def __len__(self) -> int:
-        return len(self.children)
+        return len(self._children)
 
     def insert(self, index: int, child: Element) -> None:
         new_children = list(self._children)
@@ -176,7 +177,7 @@ class List(SequenceElement):
         self._numbered = numbered
 
     def __repr__(self) -> str:
-        return f'List({self.children!r}, numbered={self.numbered!r})'
+        return f'List({self._children!r}, numbered={self.numbered!r})'
 
     @property
     def numbered(self) -> bool:
@@ -197,7 +198,7 @@ class List(SequenceElement):
 
 class Container(SequenceElement):
     def to_protobuf(self) -> element_pb2.Element:
-        return protobuf_helpers.tag('div', children=self.children)
+        return protobuf_helpers.tag('div', children=self._children)
 
 class Text(Element):
     def __init__(self, text: str) -> None:
