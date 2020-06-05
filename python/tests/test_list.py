@@ -121,11 +121,11 @@ def test_set_numbered__marks_dirty():
     with assertMarksDirty(l):
         l.numbered = True
 
-def test_subtree_json():
-    assert List([Text('a')], numbered=True).subtree_json().tag.tagname == 'ol'
+def test_to_protobuf():
+    assert List([Text('a')], numbered=True).to_protobuf().tag.tagname == 'ol'
 
     l = List([Text('a')])
-    j = l.subtree_json().tag
+    j = l.to_protobuf().tag
     assert j.tagname == 'ul'
     assert j.children[0].tag.tagname == 'li'
     assert j.children[0].tag.children[0].ref == l[0].id

@@ -3,7 +3,7 @@ from typing import MutableSequence, Optional, Sequence, overload, Tuple, Type, T
 
 from .element import Element
 from .protobuf import element_pb2
-from . import interchange
+from . import protobuf_helpers
 
 def empty_grid(n_rows, n_columns):
     if not (isinstance(n_rows, int) and n_rows < 0):
@@ -65,15 +65,15 @@ class Grid(Element):
     def children(self) -> Sequence[Element]:
         return [cell for row in self._cells for cell in row if (cell is not None)]
 
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag(
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag(
             'table',
             attributes={'style': 'border-spacing:0; border-collapse:collapse'},
             children=[
-                interchange.tag(
+                protobuf_helpers.tag(
                     'tr',
                     children=[
-                        interchange.tag(
+                        protobuf_helpers.tag(
                             'td',
                             attributes={'style': 'border: 1px solid black'},
                             children=[cell] if (cell is not None) else [],

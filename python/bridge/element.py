@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Callable, Iterable, Iterator, MutableSequence, NewType, Optional, overload, Sequence, TypeVar, TYPE_CHECKING
 
-from . import interchange
+from . import protobuf_helpers
 from .protobuf import element_pb2
 from .types import ElementId
 
@@ -84,7 +84,7 @@ class Element(ABC):
         pass
 
     @abstractmethod
-    def subtree_json(self) -> element_pb2.Element:
+    def to_protobuf(self) -> element_pb2.Element:
         pass
 
 class SequenceElement(Element, MutableSequence[Element]):
@@ -184,18 +184,18 @@ class List(SequenceElement):
         self._numbered = value
         self.mark_dirty()
 
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag(
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag(
             tagname='ol' if self.numbered else 'ul',
             children=[
-                interchange.tag('li', children=[child])
+                protobuf_helpers.tag('li', children=[child])
                 for child in self._children
             ],
         )
 
 class Container(SequenceElement):
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag('div', children=self.children)
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag('div', children=self.children)
 
 class Text(Element):
     def __init__(self, text: str, **kwargs) -> None:
@@ -210,27 +210,27 @@ class Text(Element):
     def text(self, text: str) -> None:
         self._text = text
         self.mark_dirty()
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.text(self.text)
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.text(self.text)
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.text!r})'
 
 class Bold(Text):
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag('b', children=[interchange.text(self.text)])
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag('b', children=[protobuf_helpers.text(self.text)])
 class CodeSnippet(Text):
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag(
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag(
             'code',
-            children=[interchange.text(self.text)],
+            children=[protobuf_helpers.text(self.text)],
             attributes={'style': 'white-space:pre'},
         )
 class CodeBlock(Text):
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag(
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag(
             'pre',
-            children=[interchange.text(self.text)],
+            children=[protobuf_helpers.text(self.text)],
         )
 class Link(Text):
     """A `hyperlink <http://github.com/speezepearson/browsergui>`_."""
@@ -241,10 +241,10 @@ class Link(Text):
     def __repr__(self) -> str:
         return f'Link(text={self.text!r}, url={self.url!r})'
 
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag(
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag(
             'a',
-            children=[interchange.text(self.text)],
+            children=[protobuf_helpers.text(self.text)],
             attributes={'href': self.url},
         )
 
@@ -277,8 +277,8 @@ class Button(Element):
         self._text = text
         self.mark_dirty()
 
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag('button', children=[interchange.text(self._text)])
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag('button', children=[protobuf_helpers.text(self._text)])
     def handle_click(self, event: element_pb2.ClickEvent) -> None:
         if self.callback is not None:
             self.callback()
@@ -296,8 +296,8 @@ class Button(Element):
 class LineBreak(Element):
     def __repr__(self) -> str:
         return f'LineBreak()'
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag('br')
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag('br')
 
 class TextField(Element):
     def __init__(self, callback: Optional[Callable[[str], None]] = None, **kwargs) -> None:
@@ -306,8 +306,8 @@ class TextField(Element):
         self._callback = callback
     def __repr__(self) -> str:
         return f'TextField(value={self.value!r}, callback={self._callback!r})'
-    def subtree_json(self) -> element_pb2.Element:
-        return interchange.tag('input', attributes={'value': self._value})
+    def to_protobuf(self) -> element_pb2.Element:
+        return protobuf_helpers.tag('input', attributes={'value': self._value})
     def handle_text_input(self, interaction: element_pb2.TextInputEvent) -> None:
         self.value = interaction.value
 

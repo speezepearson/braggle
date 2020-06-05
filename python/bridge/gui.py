@@ -60,7 +60,7 @@ class GUI(AbstractGUI):
         return element_pb2.PartialServerState(
             root_id=self.root.id,
             timestep=self.time_step,
-            elements={e.id: e.subtree_json() for e in recently_dirtied},
+            elements={e.id: e.to_protobuf() for e in recently_dirtied},
         )
 
     def add_listener(self, listener: Callable[[], None]) -> None:
