@@ -41,6 +41,8 @@ class Element(ABC):
         return self.__parent
     @parent.setter
     def parent(self, parent: Element) -> None:
+        if (parent is not None) and not isinstance(parent, Element):
+            raise TypeError(f'parent must be Element, not {type(parent)}')
         if (self.__parent is not None) and (parent is not None):
             raise RuntimeError('cannot set parent of Element that already has a parent')
         if self.__parent is not None:
