@@ -110,6 +110,13 @@ def test_insert__marks_dirty():
     with assertMarksDirty(l):
         l.append(Text('a'))
 
+def test_insert__marks_descendants_dirty():
+    grandchild = Text('a'); print(id(grandchild))
+    child = List([grandchild]); print(id(child))
+    l = List(); print(id(l))
+    with assertMarksDirty(child), assertMarksDirty(grandchild):
+        l.append(child)
+
 def test_children_must_be_elements():
     with raises(TypeError):
         List(children=[0])

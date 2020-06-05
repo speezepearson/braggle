@@ -37,7 +37,3 @@ def build_routes(
     return [
         web.RouteDef(method='GET', path=f'/auth/{token}', handler=_redirect_to_index, kwargs={}),
     ]
-
-def generate_token() -> str:
-    with open('/dev/urandom', 'rb') as f:
-        return base64.b64encode(f.read(32), b'-_').decode('utf8').rstrip('=')

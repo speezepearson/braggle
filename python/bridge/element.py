@@ -150,9 +150,10 @@ class SequenceElement(Element, MutableSequence[Element]):
 
     def insert(self, index: int, child: Element) -> None:
         if not isinstance(child, Element):
-            raise TypeError("List children must be Elements")
+            raise TypeError("SequenceElement children must be Elements")
         child.parent = self
         self._children.insert(index, child)
+        child.mark_dirty(recursive=True)
         self.mark_dirty()
 
 class List(SequenceElement):

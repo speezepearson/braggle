@@ -38,7 +38,7 @@ class GUI(AbstractGUI):
     def __init__(self, *children: Element) -> None:
         self._root = Container(children)
         self._root.gui = self
-        self._dirty_elements: MutableSequence[Element] = list(self._root.walk())
+        self._dirty_elements: MutableSequence[Element] = list(self._root.walk()) # OPTIMIZE: weakref
         self._mark_dirty_listeners: MutableSet[Callable[[], Any]] = set()
 
     @property
