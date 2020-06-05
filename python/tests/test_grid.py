@@ -152,3 +152,9 @@ def test_protobuf():
     assert list(pb.tag.children[0].tag.children[0].tag.children) == [element_pb2.Element(ref=a.id)]
     assert list(pb.tag.children[0].tag.children[1].tag.children) == [element_pb2.Element(ref=b.id)]
     assert list(pb.tag.children[0].tag.children[2].tag.children) == []
+
+def test_misc():
+    g = Grid([[None]])
+    g[0,0] = None
+    del g[0,0]
+    assert g[0,0] is None

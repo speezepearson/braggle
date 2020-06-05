@@ -166,7 +166,8 @@ class Grid(Element):
 
         old_child = self._cells[i][j]
         self._cells[i][j] = None
-        old_child.parent = None
+        if old_child is not None:
+            old_child.parent = None
         self.mark_dirty()
 
     @classmethod
